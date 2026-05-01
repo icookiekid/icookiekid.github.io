@@ -575,23 +575,39 @@
   @media (max-width: 768px) {
     .hamburger { display: flex; }
 
+    body {
+      display: block !important;
+    }
+
     .sidebar {
       position: fixed;
-      left: -260px;
+      left: -280px !important;
       width: 240px;
       height: 100vh;
       z-index: 200;
-      transition: left 0.28s ease;
+      transition: left 0.3s ease;
       box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+      margin-left: 0 !important;
     }
 
-    .sidebar.open { left: 0; }
-    .sidebar-overlay.open { display: block; }
+    .sidebar.open { 
+      left: 0 !important; 
+    }
+    
+    .sidebar-overlay { 
+      display: none; 
+    }
+    
+    .sidebar-overlay.open { 
+      display: block !important; 
+    }
 
     main {
-      margin-left: 0;
-      padding: 20px;
-      padding-top: 68px;
+      margin-left: 0 !important;
+      padding: 20px !important;
+      padding-top: 68px !important;
+      width: 100% !important;
+      flex: 1 !important;
     }
 
     .ledger-grid { grid-template-columns: 1fr; }
