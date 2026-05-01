@@ -598,26 +598,17 @@
     .form-card { position: static; }
     .posts-grid { grid-template-columns: 1fr; }
 
-    /* ── V1 매뉴얼 모바일 - 강화 수정 ── */
-    .v1doc-grid {
-      grid-template-columns: 1fr !important;
-      gap: 16px !important;
-    }
-    .v1doc-list-panel {
-      position: static !important;
-      max-height: none !important;
-    }
-    .v1doc-list-scroll {
-      max-height: 200px !important;
-      overflow-y: scroll !important;
-    }
+    /* ── V1 매뉴얼 모바일 - 탭 형식 ── */
     .v1doc-viewer-panel {
-      height: 400px !important;
+      height: calc(100vh - 160px) !important;
       min-height: 300px !important;
     }
     #v1doc-viewer {
       height: 100% !important;
       width: 100% !important;
+      background: white !important;
+      display: block !important;
+      border: none !important;
     }
 
     /* ── GPS 섹션 모바일 수정 ── */
@@ -861,27 +852,26 @@
   <section id="v1docs" class="section">
     <h1 class="section-title">📋 V1 매뉴얼</h1>
     <p class="section-desc">키움 자동매매 V1 — 가이드·코드·조건식 문서 모음</p>
-    <div class="v1doc-grid" style="display:grid;grid-template-columns:220px 1fr;gap:20px;margin-top:20px;align-items:start;">
-      <div class="v1doc-list-panel" style="background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;position:sticky;top:40px;">
-        <div style="padding:11px 16px;background:linear-gradient(135deg,#10233f,#1a3a6b);color:white;font-size:13px;font-weight:700;">📋 문서 목록</div>
-        <div class="v1doc-list-scroll" style="max-height:calc(100vh - 180px);overflow-y:auto;padding:8px;">
-          <button id="v1doc-btn-0" class="v1doc-btn" onclick="showV1Doc(0)" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;font-weight:700;">📘 사용설명서 통합본</button>
-          <button id="v1doc-btn-1" class="v1doc-btn" onclick="showV1Doc(1)">📗 가이드 · 기본형</button>
-          <button id="v1doc-btn-2" class="v1doc-btn" onclick="showV1Doc(2)">📗 가이드 · GPT형</button>
-          <button id="v1doc-btn-3" class="v1doc-btn" onclick="showV1Doc(3)">📗 가이드 · Claude형</button>
-          <button id="v1doc-btn-4" class="v1doc-btn" onclick="showV1Doc(4)">💻 코드 · 기본형</button>
-          <button id="v1doc-btn-5" class="v1doc-btn" onclick="showV1Doc(5)">💻 코드 · GPT형</button>
-          <button id="v1doc-btn-6" class="v1doc-btn" onclick="showV1Doc(6)">💻 코드 · Claude형</button>
-          <button id="v1doc-btn-7" class="v1doc-btn" onclick="showV1Doc(7)">🔍 조건1 · 급등초입포착</button>
-          <button id="v1doc-btn-8" class="v1doc-btn" onclick="showV1Doc(8)">🔍 조건2 · 눌림목반등</button>
-          <button id="v1doc-btn-9" class="v1doc-btn" onclick="showV1Doc(9)">🔍 조건3 · MACD골든크로스</button>
-          <button id="v1doc-btn-10" class="v1doc-btn" onclick="showV1Doc(10)">🔍 조건4 · 급등모멘텀</button>
-          <button id="v1doc-btn-11" class="v1doc-btn" onclick="showV1Doc(11)">🔍 조건5 · 외국인연속매수</button>
-        </div>
-      </div>
-      <div class="v1doc-viewer-panel" style="border-radius:12px;overflow:hidden;border:1px solid var(--border);height:calc(100vh - 140px);min-height:560px;">
-        <iframe id="v1doc-viewer" style="width:100%;height:100%;border:none;"></iframe>
-      </div>
+    
+    <!-- 상단 탭 버튼들 -->
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:20px; padding:12px; background:white; border:1px solid var(--border); border-radius:12px; overflow-x:auto;">
+      <button id="v1doc-btn-0" class="v1doc-btn" onclick="showV1Doc(0)" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;font-weight:700;padding:10px 14px;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;font-size:13px;font-family:inherit;">📘 통합본</button>
+      <button id="v1doc-btn-1" class="v1doc-btn" onclick="showV1Doc(1)" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:13px;white-space:nowrap;font-family:inherit;">📗 기본형</button>
+      <button id="v1doc-btn-2" class="v1doc-btn" onclick="showV1Doc(2)" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:13px;white-space:nowrap;font-family:inherit;">📗 GPT형</button>
+      <button id="v1doc-btn-3" class="v1doc-btn" onclick="showV1Doc(3)" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:13px;white-space:nowrap;font-family:inherit;">📗 Claude형</button>
+      <button id="v1doc-btn-4" class="v1doc-btn" onclick="showV1Doc(4)" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:13px;white-space:nowrap;font-family:inherit;">💻 기본형</button>
+      <button id="v1doc-btn-5" class="v1doc-btn" onclick="showV1Doc(5)" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:13px;white-space:nowrap;font-family:inherit;">💻 GPT형</button>
+      <button id="v1doc-btn-6" class="v1doc-btn" onclick="showV1Doc(6)" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:13px;white-space:nowrap;font-family:inherit;">💻 Claude형</button>
+      <button id="v1doc-btn-7" class="v1doc-btn" onclick="showV1Doc(7)" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:13px;white-space:nowrap;font-family:inherit;">🔍 급등초입</button>
+      <button id="v1doc-btn-8" class="v1doc-btn" onclick="showV1Doc(8)" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:13px;white-space:nowrap;font-family:inherit;">🔍 눌림목반등</button>
+      <button id="v1doc-btn-9" class="v1doc-btn" onclick="showV1Doc(9)" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:13px;white-space:nowrap;font-family:inherit;">🔍 MACD</button>
+      <button id="v1doc-btn-10" class="v1doc-btn" onclick="showV1Doc(10)" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:13px;white-space:nowrap;font-family:inherit;">🔍 모멘텀</button>
+      <button id="v1doc-btn-11" class="v1doc-btn" onclick="showV1Doc(11)" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:13px;white-space:nowrap;font-family:inherit;">🔍 외국인</button>
+    </div>
+    
+    <!-- 본 컨텐츠 -->
+    <div class="v1doc-viewer-panel" style="margin-top:20px;border-radius:12px;overflow:hidden;border:1px solid var(--border);height:calc(100vh - 140px);min-height:560px;background:white;">
+      <iframe id="v1doc-viewer" style="width:100%;height:100%;border:none;background:white;display:block;"></iframe>
     </div>
   </section>
 
