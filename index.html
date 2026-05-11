@@ -407,7 +407,61 @@
       .num-row { grid-template-columns: repeat(3, minmax(0,1fr)); }
       .num-row .bonus-field { grid-column: 1 / -1; }
     }
+  
+    .manager-box {
+      margin: 14px 0 18px;
+      padding: 15px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, 0.72);
+    }
+    .manager-title {
+      font-weight: 900;
+      color: var(--brown-dark);
+      margin-bottom: 9px;
+    }
+    .inline-tools {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 9px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--paper2);
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--brown-dark);
+    }
+    .chip button {
+      width: 21px;
+      height: 21px;
+      border-radius: 999px;
+      border: 0;
+      background: rgba(139, 63, 54, 0.12);
+      color: var(--red);
+      font-weight: 900;
+      cursor: pointer;
+    }
+    select:disabled, input:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      background: #f2eadf;
+    }
+
   </style>
+  <!-- ver34 가계부/전체수정 기능 추가 · 최종 생성일자 2026-05-11 01:48:12 KST -->
 </head>
 <body>
   <header>
@@ -477,7 +531,7 @@
             <div class="full"><label for="diaryTitle">제목</label><input id="diaryTitle" type="text" placeholder="오늘의 제목" required /></div>
             <div class="full"><label for="diaryPhoto">사진</label><input id="diaryPhoto" type="file" accept="image/*" /><p class="small">작은 사진만 권장합니다. 큰 사진은 Firestore 문서 크기 제한에 걸릴 수 있습니다.</p></div>
             <div class="full"><label for="diaryBody">내용</label><textarea id="diaryBody" placeholder="오늘 있었던 일과 생각을 적어주세요." required></textarea></div>
-            <div class="full actions"><button class="btn btn-primary" type="submit">일기 저장</button><button class="btn btn-outline" type="button" id="clearDiaryFormBtn">입력칸 비우기</button></div>
+            <div class="full actions"><button class="btn btn-primary" type="submit" id="diarySubmitBtn">일기 저장</button><button class="btn btn-outline" type="button" id="clearDiaryFormBtn">입력칸 비우기</button><button class="btn btn-outline" type="button" id="cancelDiaryEditBtn" style="display:none;">수정 취소</button></div>
           </form>
         </div>
         <div class="panel"><h2>저장된 일기</h2><div id="diaryList" class="list"></div></div>
@@ -496,7 +550,7 @@
           <form id="memoForm" class="form-grid">
             <div class="full"><label for="memoTitle">제목</label><input id="memoTitle" type="text" placeholder="메모 제목" required /></div>
             <div class="full"><label for="memoBody">내용</label><textarea id="memoBody" placeholder="메모 내용을 입력하세요." required></textarea></div>
-            <div class="full actions"><button class="btn btn-primary" type="submit">메모 저장</button></div>
+            <div class="full actions"><button class="btn btn-primary" type="submit" id="memoSubmitBtn">메모 저장</button><button class="btn btn-outline" type="button" id="cancelMemoEditBtn" style="display:none;">수정 취소</button></div>
           </form>
         </div>
         <div class="panel"><h2>저장된 메모</h2><div id="memoList" class="list"></div></div>
@@ -507,22 +561,41 @@
       <div class="wrap page-hero">
         <div class="badge">✦ Household Ledger</div>
         <h1 class="page-title">수입과 지출을 보는 <span>가계부</span></h1>
-        <p class="page-desc">현금, 카드, 계좌이체를 구분하고 카드 결제일 때만 카드 선택칸이 활성화됩니다.</p>
+        <p class="page-desc">현금, 카드, 은행계좌를 구분하고 카드/계좌 목록을 직접 추가해서 사용할 수 있습니다.</p>
       </div>
       <section class="wrap">
         <div id="ledgerSummary" class="summary-cards"></div>
         <div class="grid-2">
           <div class="panel">
-            <h2>내역 입력</h2>
+            <h2>카드·은행계좌 관리</h2>
+            <div class="manager-box">
+              <div class="manager-title">카드 추가</div>
+              <div class="inline-tools">
+                <input id="newCardName" type="text" placeholder="예: KB가온, KB쿠팡, 삼성카드" />
+                <button class="btn btn-small btn-primary" type="button" id="addCardBtn">카드 추가</button>
+              </div>
+              <div id="cardManagerList" class="chip-list"></div>
+            </div>
+            <div class="manager-box">
+              <div class="manager-title">은행계좌 추가</div>
+              <div class="inline-tools">
+                <input id="newBankName" type="text" placeholder="예: 국민은행 생활비, 카카오뱅크" />
+                <button class="btn btn-small btn-primary" type="button" id="addBankBtn">계좌 추가</button>
+              </div>
+              <div id="bankManagerList" class="chip-list"></div>
+            </div>
+
+            <h2 style="margin-top:24px;">내역 입력</h2>
             <form id="ledgerForm" class="form-grid">
               <div><label for="ledgerDate">날짜</label><input id="ledgerDate" type="date" required /></div>
               <div><label for="ledgerType">구분</label><select id="ledgerType"><option value="income">수입</option><option value="expense">지출</option></select></div>
               <div><label for="ledgerAmount">금액</label><input id="ledgerAmount" type="number" min="0" step="1" placeholder="예: 12000" required /></div>
-              <div><label for="ledgerMethod">결제수단</label><select id="ledgerMethod"><option value="cash">현금</option><option value="card">카드</option><option value="transfer">계좌이체</option></select></div>
-              <div><label for="ledgerCard">카드명</label><select id="ledgerCard" disabled><option>KB가온</option><option>KB쿠쿠</option><option>KB쿠팡</option><option>KB체크</option><option>카드추가1</option><option>카드추가2</option><option>카드추가3</option><option>카드추가4</option><option>카드추가5</option><option>카드추가6</option></select></div>
-              <div><label for="ledgerCategory">분류</label><input id="ledgerCategory" type="text" placeholder="예: 식비, 교통" /></div>
-              <div class="full"><label for="ledgerDesc">내용</label><input id="ledgerDesc" type="text" placeholder="예: 점심 식사" /></div>
-              <div class="full actions"><button class="btn btn-primary" type="submit">가계부 저장</button></div>
+              <div><label for="ledgerMethod">수단</label><select id="ledgerMethod"><option value="cash">현금</option><option value="card">카드</option><option value="bank">은행계좌</option></select></div>
+              <div><label for="ledgerCard">카드명</label><select id="ledgerCard" disabled></select></div>
+              <div><label for="ledgerBank">은행계좌</label><select id="ledgerBank" disabled></select></div>
+              <div><label for="ledgerCategory">분류</label><select id="ledgerCategory"><option>월급</option><option>부수입</option><option>식비</option><option>교통</option><option>통신</option><option>주거</option><option>공과금</option><option>보험</option><option>의료</option><option>쇼핑</option><option>교육</option><option>문화</option><option>저축</option><option>이체</option><option>기타</option></select></div>
+              <div class="full"><label for="ledgerDesc">내용</label><input id="ledgerDesc" type="text" placeholder="예: 점심 식사, 월급, 카드 결제" /></div>
+              <div class="full actions"><button class="btn btn-primary" type="submit" id="ledgerSubmitBtn">가계부 저장</button><button class="btn btn-outline" type="button" id="cancelLedgerEditBtn" style="display:none;">수정 취소</button></div>
             </form>
           </div>
           <div class="panel"><h2>가계부 내역</h2><div id="ledgerList" class="list"></div></div>
@@ -545,7 +618,7 @@
             <div class="full"><label for="recordTitle">제목</label><input id="recordTitle" type="text" required /></div>
             <div class="full"><label for="recordPhoto">사진</label><input id="recordPhoto" type="file" accept="image/*" /></div>
             <div class="full"><label for="recordBody">내용</label><textarea id="recordBody" required></textarea></div>
-            <div class="full actions"><button class="btn btn-primary" type="submit">기록 저장</button></div>
+            <div class="full actions"><button class="btn btn-primary" type="submit" id="recordSubmitBtn">기록 저장</button><button class="btn btn-outline" type="button" id="cancelRecordEditBtn" style="display:none;">수정 취소</button></div>
           </form>
         </div>
         <div class="panel"><h2>저장된 기록</h2><div id="recordList" class="list"></div></div>
@@ -660,7 +733,7 @@ service cloud.firestore {
   </main>
 
   <footer>
-    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자 2026-05-11 00:54:50 KST
+    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자 2026-05-11 01:48:12 KST
   </footer>
 
   <script type="module">
@@ -701,11 +774,16 @@ service cloud.firestore {
     // 로또 섹션에서 새 회차를 추가하면 그 데이터 기준으로 제외추출/포함추출이 계산됩니다.
     const seedLottoResults = [];
 
+    const defaultCards = ["KB가온", "KB쿠쿠", "KB쿠팡", "KB체크"];
+    const defaultBanks = ["국민은행", "카카오뱅크", "토스뱅크", "농협은행"];
+
     const defaultData = {
       diary: [],
       memos: [],
       ledger: [],
       records: [],
+      cards: [...defaultCards],
+      banks: [...defaultBanks],
       profile: {
         name: "나의 개인 공간",
         intro: "일기, 메모, 가계부, 기록, 로또 자료를 한 곳에 모으는 개인블로그입니다.",
@@ -717,6 +795,7 @@ service cloud.firestore {
       updatedAt: new Date().toISOString()
     };
 
+    let editState = { diary: null, memos: null, ledger: null, records: null };
     let state = loadLocalData();
     let app = null;
     let auth = null;
@@ -732,12 +811,18 @@ service cloud.firestore {
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
         if (!saved) return structuredClone(defaultData);
-        return {
+        const merged = {
           ...structuredClone(defaultData),
           ...saved,
           profile: { ...defaultData.profile, ...(saved.profile || {}) },
-          lottoResults: Array.isArray(saved.lottoResults) && saved.lottoResults.length ? saved.lottoResults : seedLottoResults
+          lottoResults: Array.isArray(saved.lottoResults) && saved.lottoResults.length ? saved.lottoResults : seedLottoResults,
+          cards: Array.isArray(saved.cards) && saved.cards.length ? saved.cards : [...defaultCards],
+          banks: Array.isArray(saved.banks) && saved.banks.length ? saved.banks : [...defaultBanks]
         };
+        defaultCards.forEach((card) => { if (!merged.cards.includes(card)) merged.cards.push(card); });
+        defaultBanks.forEach((bank) => { if (!merged.banks.includes(bank)) merged.banks.push(bank); });
+        merged.ledger = Array.isArray(merged.ledger) ? merged.ledger.map((item) => ({ ...item, method: item.method === "transfer" ? "bank" : item.method })) : [];
+        return merged;
       } catch (error) {
         console.warn("로컬 데이터 읽기 오류", error);
         return structuredClone(defaultData);
@@ -874,42 +959,102 @@ service cloud.firestore {
 
       $("#diaryForm")?.addEventListener("submit", async (event) => {
         event.preventDefault();
+        const editId = editState.diary;
+        const previous = editId ? state.diary.find((item) => item.id === editId) : null;
         const photo = await fileToDataUrl($("#diaryPhoto"));
-        state.diary.unshift({ id: uid(), date: $("#diaryDate").value, mood: $("#diaryMood").value, title: $("#diaryTitle").value, body: $("#diaryBody").value, photo, createdAt: new Date().toISOString() });
-        event.target.reset(); $("#diaryDate").value = today(); saveLocalData();
+        const payload = {
+          id: editId || uid(),
+          date: $("#diaryDate").value,
+          mood: $("#diaryMood").value,
+          title: $("#diaryTitle").value,
+          body: $("#diaryBody").value,
+          photo: photo || previous?.photo || "",
+          createdAt: previous?.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        if (editId) {
+          state.diary = state.diary.map((item) => item.id === editId ? payload : item);
+        } else {
+          state.diary.unshift(payload);
+        }
+        resetDiaryForm(); saveLocalData();
       });
-      $("#clearDiaryFormBtn")?.addEventListener("click", () => { $("#diaryForm").reset(); $("#diaryDate").value = today(); });
+      $("#clearDiaryFormBtn")?.addEventListener("click", resetDiaryForm);
+      $("#cancelDiaryEditBtn")?.addEventListener("click", resetDiaryForm);
 
       $("#memoForm")?.addEventListener("submit", (event) => {
         event.preventDefault();
-        state.memos.unshift({ id: uid(), title: $("#memoTitle").value, body: $("#memoBody").value, createdAt: new Date().toISOString() });
-        event.target.reset(); saveLocalData();
+        const editId = editState.memos;
+        const previous = editId ? state.memos.find((item) => item.id === editId) : null;
+        const payload = {
+          id: editId || uid(),
+          title: $("#memoTitle").value,
+          body: $("#memoBody").value,
+          createdAt: previous?.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        if (editId) {
+          state.memos = state.memos.map((item) => item.id === editId ? payload : item);
+        } else {
+          state.memos.unshift(payload);
+        }
+        resetMemoForm(); saveLocalData();
       });
+      $("#cancelMemoEditBtn")?.addEventListener("click", resetMemoForm);
 
-      $("#ledgerMethod")?.addEventListener("change", updateCardSelectState);
+      $("#ledgerMethod")?.addEventListener("change", updateLedgerMethodState);
+      $("#addCardBtn")?.addEventListener("click", addCardFromInput);
+      $("#addBankBtn")?.addEventListener("click", addBankFromInput);
       $("#ledgerForm")?.addEventListener("submit", (event) => {
         event.preventDefault();
+        const editId = editState.ledger;
+        const previous = editId ? state.ledger.find((item) => item.id === editId) : null;
         const method = $("#ledgerMethod").value;
-        state.ledger.unshift({
-          id: uid(),
+        const payload = {
+          id: editId || uid(),
           date: $("#ledgerDate").value,
           type: $("#ledgerType").value,
           amount: Number($("#ledgerAmount").value || 0),
           method,
           card: method === "card" ? $("#ledgerCard").value : "",
+          bankAccount: method === "bank" ? $("#ledgerBank").value : "",
           category: $("#ledgerCategory").value,
           desc: $("#ledgerDesc").value,
-          createdAt: new Date().toISOString()
-        });
-        event.target.reset(); $("#ledgerDate").value = today(); updateCardSelectState(); saveLocalData();
+          createdAt: previous?.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        if (editId) {
+          state.ledger = state.ledger.map((item) => item.id === editId ? payload : item);
+        } else {
+          state.ledger.unshift(payload);
+        }
+        resetLedgerForm(); saveLocalData();
       });
+      $("#cancelLedgerEditBtn")?.addEventListener("click", resetLedgerForm);
 
       $("#recordForm")?.addEventListener("submit", async (event) => {
         event.preventDefault();
+        const editId = editState.records;
+        const previous = editId ? state.records.find((item) => item.id === editId) : null;
         const photo = await fileToDataUrl($("#recordPhoto"));
-        state.records.unshift({ id: uid(), category: $("#recordCategory").value, date: $("#recordDate").value, title: $("#recordTitle").value, body: $("#recordBody").value, photo, createdAt: new Date().toISOString() });
-        event.target.reset(); $("#recordDate").value = today(); saveLocalData();
+        const payload = {
+          id: editId || uid(),
+          category: $("#recordCategory").value,
+          date: $("#recordDate").value,
+          title: $("#recordTitle").value,
+          body: $("#recordBody").value,
+          photo: photo || previous?.photo || "",
+          createdAt: previous?.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        if (editId) {
+          state.records = state.records.map((item) => item.id === editId ? payload : item);
+        } else {
+          state.records.unshift(payload);
+        }
+        resetRecordForm(); saveLocalData();
       });
+      $("#cancelRecordEditBtn")?.addEventListener("click", resetRecordForm);
 
       $("#profileForm")?.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -919,20 +1064,106 @@ service cloud.firestore {
       });
     }
 
-    function updateCardSelectState() {
-      const isCard = $("#ledgerMethod")?.value === "card";
-      const card = $("#ledgerCard");
-      if (card) card.disabled = !isCard;
+    function resetDiaryForm() {
+      editState.diary = null;
+      $("#diaryForm")?.reset();
+      if ($("#diaryDate")) $("#diaryDate").value = today();
+      if ($("#diarySubmitBtn")) $("#diarySubmitBtn").textContent = "일기 저장";
+      if ($("#cancelDiaryEditBtn")) $("#cancelDiaryEditBtn").style.display = "none";
     }
 
-    function renderAll() {
+    function resetMemoForm() {
+      editState.memos = null;
+      $("#memoForm")?.reset();
+      if ($("#memoSubmitBtn")) $("#memoSubmitBtn").textContent = "메모 저장";
+      if ($("#cancelMemoEditBtn")) $("#cancelMemoEditBtn").style.display = "none";
+    }
+
+    function resetLedgerForm() {
+      editState.ledger = null;
+      $("#ledgerForm")?.reset();
+      if ($("#ledgerDate")) $("#ledgerDate").value = today();
+      if ($("#ledgerSubmitBtn")) $("#ledgerSubmitBtn").textContent = "가계부 저장";
+      if ($("#cancelLedgerEditBtn")) $("#cancelLedgerEditBtn").style.display = "none";
+      updateLedgerMethodState();
+    }
+
+    function resetRecordForm() {
+      editState.records = null;
+      $("#recordForm")?.reset();
+      if ($("#recordDate")) $("#recordDate").value = today();
+      if ($("#recordSubmitBtn")) $("#recordSubmitBtn").textContent = "기록 저장";
+      if ($("#cancelRecordEditBtn")) $("#cancelRecordEditBtn").style.display = "none";
+    }
+
+    function addCardFromInput() {
+      const input = $("#newCardName");
+      const name = input?.value.trim();
+      if (!name) return alert("추가할 카드명을 입력해 주세요.");
+      if (!Array.isArray(state.cards)) state.cards = [...defaultCards];
+      if (state.cards.includes(name)) return alert("이미 등록된 카드입니다.");
+      if (state.cards.length >= 10) return alert("카드는 총 10개까지 등록할 수 있습니다.");
+      state.cards.push(name);
+      input.value = "";
+      saveLocalData();
+    }
+
+    function addBankFromInput() {
+      const input = $("#newBankName");
+      const name = input?.value.trim();
+      if (!name) return alert("추가할 은행계좌 이름을 입력해 주세요.");
+      if (!Array.isArray(state.banks)) state.banks = [...defaultBanks];
+      if (state.banks.includes(name)) return alert("이미 등록된 은행계좌입니다.");
+      if (state.banks.length >= 12) return alert("은행계좌는 총 12개까지 등록할 수 있습니다.");
+      state.banks.push(name);
+      input.value = "";
+      saveLocalData();
+    }
+
+    function removeCard(name) {
+      if (defaultCards.includes(name)) return alert("기본 카드는 삭제하지 않는 것을 권장합니다.");
+      if (!confirm(`${name} 카드를 목록에서 삭제하시겠습니까? 기존 가계부 내역은 삭제되지 않습니다.`)) return;
+      state.cards = (state.cards || []).filter((card) => card !== name);
+      saveLocalData();
+    }
+
+    function removeBank(name) {
+      if (defaultBanks.includes(name)) return alert("기본 은행계좌는 삭제하지 않는 것을 권장합니다.");
+      if (!confirm(`${name} 계좌를 목록에서 삭제하시겠습니까? 기존 가계부 내역은 삭제되지 않습니다.`)) return;
+      state.banks = (state.banks || []).filter((bank) => bank !== name);
+      saveLocalData();
+    }
+
+    function renderLedgerManagers() {
+      if (!Array.isArray(state.cards)) state.cards = [...defaultCards];
+      if (!Array.isArray(state.banks)) state.banks = [...defaultBanks];
+      const cardSelect = $("#ledgerCard");
+      const bankSelect = $("#ledgerBank");
+      if (cardSelect) cardSelect.innerHTML = state.cards.map((card) => `<option value="${escapeHtml(card)}">${escapeHtml(card)}</option>`).join("");
+      if (bankSelect) bankSelect.innerHTML = state.banks.map((bank) => `<option value="${escapeHtml(bank)}">${escapeHtml(bank)}</option>`).join("");
+      const cardList = $("#cardManagerList");
+      const bankList = $("#bankManagerList");
+      if (cardList) cardList.innerHTML = state.cards.map((card) => `<span class="chip">${escapeHtml(card)}${defaultCards.includes(card) ? "" : `<button type="button" data-remove-card="${escapeHtml(card)}">×</button>`}</span>`).join("");
+      if (bankList) bankList.innerHTML = state.banks.map((bank) => `<span class="chip">${escapeHtml(bank)}${defaultBanks.includes(bank) ? "" : `<button type="button" data-remove-bank="${escapeHtml(bank)}">×</button>`}</span>`).join("");
+    }
+
+    function updateLedgerMethodState() {
+      const method = $("#ledgerMethod")?.value;
+      const card = $("#ledgerCard");
+      const bank = $("#ledgerBank");
+      if (card) card.disabled = method !== "card";
+      if (bank) bank.disabled = method !== "bank";
+    }
+
+function renderAll() {
+      renderLedgerManagers();
       renderDiary();
       renderMemos();
       renderLedger();
       renderRecords();
       renderProfile();
       renderLotto();
-      updateCardSelectState();
+      updateLedgerMethodState();
     }
 
     function renderDiary() {
@@ -944,7 +1175,7 @@ service cloud.firestore {
           <h3>${escapeHtml(item.title)}</h3>
           <p>${escapeHtml(item.body).replace(/\n/g, "<br>")}</p>
           ${item.photo ? `<img class="thumb" src="${item.photo}" alt="일기 사진">` : ""}
-          <div class="actions"><button class="btn btn-small btn-danger" type="button" data-delete="diary" data-id="${item.id}">삭제</button></div>
+          <div class="actions"><button class="btn btn-small btn-secondary" type="button" data-edit="diary" data-id="${item.id}">수정</button><button class="btn btn-small btn-danger" type="button" data-delete="diary" data-id="${item.id}">삭제</button></div>
         </article>`).join("") : `<div class="empty">아직 저장된 일기가 없습니다.</div>`;
     }
 
@@ -953,10 +1184,10 @@ service cloud.firestore {
       if (!box) return;
       box.innerHTML = state.memos.length ? state.memos.map((item) => `
         <article class="list-item">
-          <div class="meta">${new Date(item.createdAt).toLocaleString("ko-KR")}</div>
+          <div class="meta">${new Date(item.createdAt).toLocaleString("ko-KR")}${item.updatedAt ? " · 수정됨" : ""}</div>
           <h3>${escapeHtml(item.title)}</h3>
           <p>${escapeHtml(item.body).replace(/\n/g, "<br>")}</p>
-          <div class="actions"><button class="btn btn-small btn-danger" type="button" data-delete="memos" data-id="${item.id}">삭제</button></div>
+          <div class="actions"><button class="btn btn-small btn-secondary" type="button" data-edit="memos" data-id="${item.id}">수정</button><button class="btn btn-small btn-danger" type="button" data-delete="memos" data-id="${item.id}">삭제</button></div>
         </article>`).join("") : `<div class="empty">아직 저장된 메모가 없습니다.</div>`;
     }
 
@@ -966,30 +1197,36 @@ service cloud.firestore {
       if (!summary || !list) return;
       const totals = state.ledger.reduce((acc, item) => {
         const amount = Number(item.amount || 0);
+        const method = item.method === "transfer" ? "bank" : item.method;
         if (item.type === "income") acc.income += amount;
         if (item.type === "expense") acc.expense += amount;
-        if (item.method === "card") acc.card += amount;
-        if (item.method === "cash") acc.cash += amount;
-        if (item.method === "transfer") acc.transfer += amount;
+        if (method === "card") acc.card += amount;
+        if (method === "cash") acc.cash += amount;
+        if (method === "bank") acc.bank += amount;
         return acc;
-      }, { income: 0, expense: 0, card: 0, cash: 0, transfer: 0 });
+      }, { income: 0, expense: 0, card: 0, cash: 0, bank: 0 });
       const balance = totals.income - totals.expense;
       summary.innerHTML = `
         <div class="summary-card">수입<b>${formatMoney(totals.income)}</b></div>
         <div class="summary-card">지출<b>${formatMoney(totals.expense)}</b></div>
         <div class="summary-card">잔액<b>${formatMoney(balance)}</b></div>
-        <div class="summary-card">카드 사용<b>${formatMoney(totals.card)}</b></div>`;
-      list.innerHTML = state.ledger.length ? state.ledger.map((item) => `
+        <div class="summary-card">카드 사용<b>${formatMoney(totals.card)}</b></div>
+        <div class="summary-card">은행계좌 사용<b>${formatMoney(totals.bank)}</b></div>`;
+      list.innerHTML = state.ledger.length ? state.ledger.map((item) => {
+        const method = item.method === "transfer" ? "bank" : item.method;
+        const detail = method === "card" && item.card ? ` · ${escapeHtml(item.card)}` : method === "bank" && item.bankAccount ? ` · ${escapeHtml(item.bankAccount)}` : "";
+        return `
         <article class="list-item">
-          <div class="meta">${escapeHtml(item.date)} · ${item.type === "income" ? "수입" : "지출"} · ${methodLabel(item.method)} ${item.card ? "· " + escapeHtml(item.card) : ""}</div>
+          <div class="meta">${escapeHtml(item.date)} · ${item.type === "income" ? "수입" : "지출"} · ${methodLabel(method)}${detail}</div>
           <h3>${formatMoney(item.amount)} ${item.category ? "· " + escapeHtml(item.category) : ""}</h3>
           <p>${escapeHtml(item.desc || "내용 없음")}</p>
-          <div class="actions"><button class="btn btn-small btn-danger" type="button" data-delete="ledger" data-id="${item.id}">삭제</button></div>
-        </article>`).join("") : `<div class="empty">아직 저장된 가계부 내역이 없습니다.</div>`;
+          <div class="actions"><button class="btn btn-small btn-secondary" type="button" data-edit="ledger" data-id="${item.id}">수정</button><button class="btn btn-small btn-danger" type="button" data-delete="ledger" data-id="${item.id}">삭제</button></div>
+        </article>`;
+      }).join("") : `<div class="empty">아직 저장된 가계부 내역이 없습니다.</div>`;
     }
 
     function methodLabel(method) {
-      return { cash: "현금", card: "카드", transfer: "계좌이체" }[method] || method;
+      return { cash: "현금", card: "카드", bank: "은행계좌", transfer: "계좌이체" }[method] || method;
     }
 
     function renderRecords() {
@@ -1001,11 +1238,11 @@ service cloud.firestore {
           <h3>${escapeHtml(item.title)}</h3>
           <p>${escapeHtml(item.body).replace(/\n/g, "<br>")}</p>
           ${item.photo ? `<img class="thumb" src="${item.photo}" alt="기록 사진">` : ""}
-          <div class="actions"><button class="btn btn-small btn-danger" type="button" data-delete="records" data-id="${item.id}">삭제</button></div>
+          <div class="actions"><button class="btn btn-small btn-secondary" type="button" data-edit="records" data-id="${item.id}">수정</button><button class="btn btn-small btn-danger" type="button" data-delete="records" data-id="${item.id}">삭제</button></div>
         </article>`).join("") : `<div class="empty">아직 저장된 기록이 없습니다.</div>`;
     }
 
-    function renderProfile() {
+function renderProfile() {
       const p = state.profile || defaultData.profile;
       const view = $("#profileView");
       if ($("#profileName")) {
@@ -1022,6 +1259,17 @@ service cloud.firestore {
 
     function initDeleteButtons() {
       document.addEventListener("click", (event) => {
+        const removeCardBtn = event.target.closest("[data-remove-card]");
+        if (removeCardBtn) return removeCard(removeCardBtn.dataset.removeCard);
+        const removeBankBtn = event.target.closest("[data-remove-bank]");
+        if (removeBankBtn) return removeBank(removeBankBtn.dataset.removeBank);
+
+        const editBtn = event.target.closest("[data-edit]");
+        if (editBtn) {
+          openEditForm(editBtn.dataset.edit, editBtn.dataset.id);
+          return;
+        }
+
         const btn = event.target.closest("[data-delete]");
         if (!btn) return;
         const key = btn.dataset.delete;
@@ -1033,7 +1281,60 @@ service cloud.firestore {
       });
     }
 
-    function initLotto() {
+    function openEditForm(key, id) {
+      if (!Array.isArray(state[key])) return;
+      const item = state[key].find((entry) => entry.id === id);
+      if (!item) return;
+      if (key === "diary") {
+        editState.diary = id;
+        $("#diaryDate").value = item.date || today();
+        $("#diaryMood").value = item.mood || "";
+        $("#diaryTitle").value = item.title || "";
+        $("#diaryBody").value = item.body || "";
+        if ($("#diarySubmitBtn")) $("#diarySubmitBtn").textContent = "일기 수정 저장";
+        if ($("#cancelDiaryEditBtn")) $("#cancelDiaryEditBtn").style.display = "inline-flex";
+        goPage("diary");
+      }
+      if (key === "memos") {
+        editState.memos = id;
+        $("#memoTitle").value = item.title || "";
+        $("#memoBody").value = item.body || "";
+        if ($("#memoSubmitBtn")) $("#memoSubmitBtn").textContent = "메모 수정 저장";
+        if ($("#cancelMemoEditBtn")) $("#cancelMemoEditBtn").style.display = "inline-flex";
+        goPage("memo");
+      }
+      if (key === "ledger") {
+        editState.ledger = id;
+        $("#ledgerDate").value = item.date || today();
+        $("#ledgerType").value = item.type || "expense";
+        $("#ledgerAmount").value = item.amount || "";
+        $("#ledgerMethod").value = item.method === "transfer" ? "bank" : (item.method || "cash");
+        if (item.card && !state.cards.includes(item.card)) state.cards.push(item.card);
+        if (item.bankAccount && !state.banks.includes(item.bankAccount)) state.banks.push(item.bankAccount);
+        renderLedgerManagers();
+        if ($("#ledgerCard")) $("#ledgerCard").value = item.card || state.cards[0] || "";
+        if ($("#ledgerBank")) $("#ledgerBank").value = item.bankAccount || state.banks[0] || "";
+        if ($("#ledgerCategory")) $("#ledgerCategory").value = item.category || "기타";
+        $("#ledgerDesc").value = item.desc || "";
+        if ($("#ledgerSubmitBtn")) $("#ledgerSubmitBtn").textContent = "가계부 수정 저장";
+        if ($("#cancelLedgerEditBtn")) $("#cancelLedgerEditBtn").style.display = "inline-flex";
+        updateLedgerMethodState();
+        goPage("ledger");
+      }
+      if (key === "records") {
+        editState.records = id;
+        $("#recordCategory").value = item.category || "기타";
+        $("#recordDate").value = item.date || today();
+        $("#recordTitle").value = item.title || "";
+        $("#recordBody").value = item.body || "";
+        if ($("#recordSubmitBtn")) $("#recordSubmitBtn").textContent = "기록 수정 저장";
+        if ($("#cancelRecordEditBtn")) $("#cancelRecordEditBtn").style.display = "inline-flex";
+        goPage("archive");
+      }
+      setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 80);
+    }
+
+function initLotto() {
       const ticket = $("#ticketInputs");
       const round = $("#roundInputs");
       if (ticket) ticket.innerHTML = Array.from({ length: 6 }, (_, i) => `<input type="number" min="1" max="45" data-ticket-index="${i}" placeholder="${i+1}" required>`).join("");
@@ -1285,7 +1586,7 @@ service cloud.firestore {
       initAuthButtons();
       renderAll();
       initFirebase();
-      updateCardSelectState();
+      updateLedgerMethodState();
     }
 
     boot();
@@ -1396,6 +1697,6 @@ service cloud.firestore {
       });
     })();
   </script>
-<!-- ver33 로또 데이터 복구 · 통합 안정본 · 최종 생성일자 2026-05-11 00:54:50 KST -->
+<!-- ver33 로또 데이터 복구 · 통합 안정본 · 최종 생성일자 2026-05-11 01:48:12 KST -->
 </body>
 </html>
