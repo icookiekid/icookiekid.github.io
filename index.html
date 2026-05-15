@@ -615,7 +615,7 @@
     }
 
   </style>
-  <!-- ver48 개인블로그_드롭다운복구 · 최종 생성일자 2026-05-15 18:44:05 KST -->
+  <!-- ver50 개인블로그_로그인버튼수정 · 최종 생성일자: 2026-05-15 19:20:30 KST -->
 </head>
 <body>
   <header>
@@ -966,7 +966,7 @@ service cloud.firestore {
   </main>
 
   <footer>
-    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자 2026-05-15 18:44:05 KST
+    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-05-15 19:20:30 KST
   </footer>
 
   <script type="module">
@@ -990,6 +990,7 @@ service cloud.firestore {
     let setDoc = null;
     let serverTimestamp = null;
     let firebaseSdkLoaded = false;
+    let firebaseInitPromise = null;
 
     const FIREBASE_SDK_BASES = [
       "https://www.gstatic.com/firebasejs/10.12.5",
@@ -2461,8 +2462,20 @@ function initLotto() {
       });
     }
 
+    async function ensureFirebaseReadyForAuth() {
+      if (auth) return true;
+      setStatus($("#authStatus"), "warn", "로그인 준비 중", "Firebase 로그인 기능을 준비하고 있습니다. 잠시만 기다려 주세요.");
+      try {
+        if (!firebaseInitPromise) firebaseInitPromise = initFirebase();
+        await firebaseInitPromise;
+      } catch (error) {
+        console.error(error);
+      }
+      return !!auth;
+    }
+
     async function handleSignUp() {
-      if (!auth) { setStatus($("#authStatus"), "warn", "Firebase 준비 중", "로그인 기능을 아직 불러오는 중입니다. 2~3초 뒤 다시 눌러 주세요."); return; }
+      if (!auth && !(await ensureFirebaseReadyForAuth())) { setStatus($("#authStatus"), "bad", "로그인 준비 실패", "Firebase 로그인 기능을 아직 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 눌러 주세요."); return; }
       const fields = validateAuthFields();
       if (!fields) return;
       const hostWarning = getLoginHostWarning();
@@ -2485,7 +2498,7 @@ function initLotto() {
     }
 
     async function handleSignIn() {
-      if (!auth) { setStatus($("#authStatus"), "warn", "Firebase 준비 중", "로그인 기능을 아직 불러오는 중입니다. 2~3초 뒤 다시 눌러 주세요."); return; }
+      if (!auth && !(await ensureFirebaseReadyForAuth())) { setStatus($("#authStatus"), "bad", "로그인 준비 실패", "Firebase 로그인 기능을 아직 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 눌러 주세요."); return; }
       const fields = validateAuthFields();
       if (!fields) return;
       const hostWarning = getLoginHostWarning();
@@ -2615,41 +2628,85 @@ function initLotto() {
 
     function initAuthButtons() {
       const authForm = $("#authForm");
-      authForm?.addEventListener("submit", (event) => {
-        event.preventDefault();
-        handleSignIn();
-      });
-      $("#signUpBtn")?.addEventListener("click", handleSignUp);
-      $("#signInBtn")?.addEventListener("click", handleSignIn);
-      $("#authPassword")?.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
+      if (authForm && !authForm.dataset.bound) {
+        authForm.dataset.bound = "1";
+        authForm.addEventListener("submit", (event) => {
           event.preventDefault();
+          setStatus($("#authStatus"), "warn", "로그인 버튼 작동", "입력값을 확인하고 Firebase 로그인을 준비합니다.");
           handleSignIn();
-        }
-      });
-      $("#signOutBtn")?.addEventListener("click", async () => {
-        if (!auth) return;
-        try {
-          await signOut(auth);
-          setStatus($("#authStatus"), "warn", "로그아웃 완료", "이제 로컬 저장 모드로 작동합니다.");
-        } catch (error) {
-          setStatus($("#authStatus"), "bad", "로그아웃 실패", getFriendlyAuthMessage(error));
-        }
-      });
-      $("#saveCloudBtn")?.addEventListener("click", () => saveToCloud(true));
-      $("#loadCloudBtn")?.addEventListener("click", () => loadFromCloud(true));
+        });
+      }
+      const signUpBtn = $("#signUpBtn");
+      if (signUpBtn && !signUpBtn.dataset.bound) {
+        signUpBtn.dataset.bound = "1";
+        signUpBtn.addEventListener("click", () => {
+          setStatus($("#authStatus"), "warn", "회원가입 버튼 작동", "입력값을 확인하고 Firebase 회원가입을 준비합니다.");
+          handleSignUp();
+        });
+      }
+      const signInBtn = $("#signInBtn");
+      if (signInBtn && !signInBtn.dataset.bound) {
+        signInBtn.dataset.bound = "1";
+        signInBtn.addEventListener("click", () => {
+          setStatus($("#authStatus"), "warn", "로그인 버튼 작동", "입력값을 확인하고 Firebase 로그인을 준비합니다.");
+          handleSignIn();
+        });
+      }
+      const authPassword = $("#authPassword");
+      if (authPassword && !authPassword.dataset.bound) {
+        authPassword.dataset.bound = "1";
+        authPassword.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            setStatus($("#authStatus"), "warn", "로그인 버튼 작동", "입력값을 확인하고 Firebase 로그인을 준비합니다.");
+            handleSignIn();
+          }
+        });
+      }
+      const signOutBtn = $("#signOutBtn");
+      if (signOutBtn && !signOutBtn.dataset.bound) {
+        signOutBtn.dataset.bound = "1";
+        signOutBtn.addEventListener("click", async () => {
+          if (!auth && !(await ensureFirebaseReadyForAuth())) return;
+          try {
+            await signOut(auth);
+            setStatus($("#authStatus"), "warn", "로그아웃 완료", "이제 로컬 저장 모드로 작동합니다.");
+          } catch (error) {
+            setStatus($("#authStatus"), "bad", "로그아웃 실패", getFriendlyAuthMessage(error));
+          }
+        });
+      }
+      const saveCloudBtn = $("#saveCloudBtn");
+      if (saveCloudBtn && !saveCloudBtn.dataset.bound) {
+        saveCloudBtn.dataset.bound = "1";
+        saveCloudBtn.addEventListener("click", () => saveToCloud(true));
+      }
+      const loadCloudBtn = $("#loadCloudBtn");
+      if (loadCloudBtn && !loadCloudBtn.dataset.bound) {
+        loadCloudBtn.dataset.bound = "1";
+        loadCloudBtn.addEventListener("click", () => loadFromCloud(true));
+      }
+    }
+
+    function safeBootStep(name, fn) {
+      try {
+        fn();
+      } catch (error) {
+        console.error("초기화 오류 - " + name, error);
+        setStatus($("#authStatus"), "warn", "일부 기능 초기화 오류", name + " 기능에서 오류가 있어도 로그인 버튼은 계속 사용할 수 있습니다.");
+      }
     }
 
     function boot() {
-      initNavigation();
-      initForms();
-      initDeleteButtons();
-      initLotto();
-      initLottoDelete();
       initAuthButtons();
-      renderAll();
-      initFirebase();
-      updateLedgerMethodState();
+      safeBootStep("상단 메뉴", initNavigation);
+      safeBootStep("입력폼", initForms);
+      safeBootStep("삭제 버튼", initDeleteButtons);
+      safeBootStep("로또", initLotto);
+      safeBootStep("로또 삭제", initLottoDelete);
+      safeBootStep("화면 표시", renderAll);
+      safeBootStep("가계부 수단 표시", updateLedgerMethodState);
+      firebaseInitPromise = initFirebase();
     }
 
     boot();
@@ -2763,7 +2820,7 @@ function initLotto() {
       });
     })();
   </script>
-<!-- ver48 개인블로그_드롭다운복구 · 최종 생성일자 2026-05-15 18:44:05 KST -->
-  <!-- 최종 생성일자: 2026-05-15 18:44:05 KST -->
+<!-- ver50 개인블로그_로그인버튼수정 · 최종 생성일자: 2026-05-15 19:20:30 KST -->
+  <!-- 최종 생성일자: 2026-05-15 19:20:30 KST -->
 </body>
 </html>
