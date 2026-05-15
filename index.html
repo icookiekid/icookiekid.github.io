@@ -615,7 +615,7 @@
     }
 
   </style>
-  <!-- ver48 개인블로그_드롭다운복구 · 최종 생성일자 2026-05-15 18:31:13 KST -->
+  <!-- ver48 개인블로그_드롭다운복구 · 최종 생성일자 2026-05-15 18:44:05 KST -->
 </head>
 <body>
   <header>
@@ -966,28 +966,70 @@ service cloud.firestore {
   </main>
 
   <footer>
-    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자 2026-05-15 18:31:13 KST
+    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자 2026-05-15 18:44:05 KST
   </footer>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-    import {
-      getAuth,
-      setPersistence,
-      browserLocalPersistence,
-      browserSessionPersistence,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      signOut,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+    // =========================================================
+    // Firebase SDK 로드 보강
+    // 이전 파일처럼 맨 위에서 바로 import하면 CDN 버전 문제나 미리보기 주소 문제 때
+    // 전체 스크립트가 멈출 수 있어, 로그인 시 필요한 SDK를 안전하게 불러오도록 수정했습니다.
+    // =========================================================
+    let initializeApp = null;
+    let getAuth = null;
+    let setPersistence = null;
+    let browserLocalPersistence = null;
+    let browserSessionPersistence = null;
+    let createUserWithEmailAndPassword = null;
+    let signInWithEmailAndPassword = null;
+    let signOut = null;
+    let onAuthStateChanged = null;
+    let getFirestore = null;
+    let doc = null;
+    let getDoc = null;
+    let setDoc = null;
+    let serverTimestamp = null;
+    let firebaseSdkLoaded = false;
+
+    const FIREBASE_SDK_BASES = [
+      "https://www.gstatic.com/firebasejs/10.12.5",
+      "https://www.gstatic.com/firebasejs/9.23.0"
+    ];
+
+    async function loadFirebaseSdk() {
+      if (firebaseSdkLoaded) return;
+      let lastError = null;
+      for (const base of FIREBASE_SDK_BASES) {
+        try {
+          const [appModule, authModule, firestoreModule] = await Promise.all([
+            import(`${base}/firebase-app.js`),
+            import(`${base}/firebase-auth.js`),
+            import(`${base}/firebase-firestore.js`)
+          ]);
+
+          initializeApp = appModule.initializeApp;
+          getAuth = authModule.getAuth;
+          setPersistence = authModule.setPersistence;
+          browserLocalPersistence = authModule.browserLocalPersistence;
+          browserSessionPersistence = authModule.browserSessionPersistence;
+          createUserWithEmailAndPassword = authModule.createUserWithEmailAndPassword;
+          signInWithEmailAndPassword = authModule.signInWithEmailAndPassword;
+          signOut = authModule.signOut;
+          onAuthStateChanged = authModule.onAuthStateChanged;
+          getFirestore = firestoreModule.getFirestore;
+          doc = firestoreModule.doc;
+          getDoc = firestoreModule.getDoc;
+          setDoc = firestoreModule.setDoc;
+          serverTimestamp = firestoreModule.serverTimestamp;
+          firebaseSdkLoaded = true;
+          return;
+        } catch (error) {
+          lastError = error;
+          console.warn("Firebase SDK 로드 실패, 다음 버전으로 재시도:", base, error);
+        }
+      }
+      throw lastError || new Error("Firebase SDK를 불러오지 못했습니다.");
+    }
 
     // =========================================================
     // Firebase 설정값 입력 위치
@@ -2337,6 +2379,17 @@ function initLotto() {
       });
     }
 
+    function getLoginHostWarning() {
+      const host = window.location.hostname;
+      const href = window.location.href;
+      const allowedHosts = ["icookiekid.github.io", "localhost", "127.0.0.1"];
+      if (allowedHosts.includes(host)) return "";
+      if (href.startsWith("file:")) {
+        return "다운로드한 파일을 PC에서 바로 열면 Firebase 로그인이 막힐 수 있습니다. GitHub에 올린 뒤 https://icookiekid.github.io/ 주소에서 로그인해 주세요.";
+      }
+      return "ChatGPT 미리보기 화면이나 임시 주소에서는 Firebase 로그인이 막힐 수 있습니다. 반드시 GitHub 주소 https://icookiekid.github.io/ 에서 로그인해 주세요.";
+    }
+
     function isFirebaseConfigReady() {
       const values = Object.values(firebaseConfig || {});
       return firebaseConfig.apiKey && firebaseConfig.projectId && values.every((value) => typeof value === "string" && value.trim() && !value.includes("여기에_"));
@@ -2355,7 +2408,9 @@ function initLotto() {
         "auth/email-already-in-use": "이미 가입된 이메일입니다. 회원가입 대신 로그인을 눌러 주세요.",
         "auth/network-request-failed": "인터넷 연결이 불안정합니다. 와이파이/데이터 연결을 확인한 뒤 다시 눌러 주세요.",
         "auth/too-many-requests": "로그인 시도가 너무 많습니다. 잠시 기다린 뒤 다시 시도해 주세요.",
-        "auth/unauthorized-domain": "Firebase Authorized domains에 icookiekid.github.io가 등록되어 있는지 확인해 주세요."
+        "auth/unauthorized-domain": "현재 접속 주소가 Firebase 로그인 허용 도메인이 아닙니다. ChatGPT 미리보기나 파일 직접 열기에서는 로그인하지 말고 https://icookiekid.github.io/ 주소에서 로그인해 주세요.",
+        "auth/operation-not-allowed": "Firebase Authentication에서 Email/Password 로그인이 꺼져 있습니다. Firebase 콘솔에서 Email/Password를 사용 설정해 주세요.",
+        "auth/popup-closed-by-user": "로그인 창이 닫혔습니다. 다시 로그인 버튼을 눌러 주세요."
       };
       return messages[code] || raw || "알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
     }
@@ -2407,9 +2462,14 @@ function initLotto() {
     }
 
     async function handleSignUp() {
-      if (!auth) { setStatus($("#authStatus"), "warn", "Firebase 설정 필요", "먼저 firebaseConfig 값을 확인해 주세요."); return; }
+      if (!auth) { setStatus($("#authStatus"), "warn", "Firebase 준비 중", "로그인 기능을 아직 불러오는 중입니다. 2~3초 뒤 다시 눌러 주세요."); return; }
       const fields = validateAuthFields();
       if (!fields) return;
+      const hostWarning = getLoginHostWarning();
+      if (hostWarning) {
+        setStatus($("#authStatus"), "warn", "GitHub 주소에서 회원가입", hostWarning);
+        return;
+      }
       setAuthButtonsBusy(true);
       setStatus($("#authStatus"), "warn", "회원가입 중", "잠시만 기다려 주세요.");
       try {
@@ -2425,11 +2485,16 @@ function initLotto() {
     }
 
     async function handleSignIn() {
-      if (!auth) { setStatus($("#authStatus"), "warn", "Firebase 설정 필요", "먼저 firebaseConfig 값을 확인해 주세요."); return; }
+      if (!auth) { setStatus($("#authStatus"), "warn", "Firebase 준비 중", "로그인 기능을 아직 불러오는 중입니다. 2~3초 뒤 다시 눌러 주세요."); return; }
       const fields = validateAuthFields();
       if (!fields) return;
+      const hostWarning = getLoginHostWarning();
+      if (hostWarning) {
+        setStatus($("#authStatus"), "warn", "GitHub 주소에서 로그인", hostWarning);
+        return;
+      }
       setAuthButtonsBusy(true);
-      setStatus($("#authStatus"), "warn", "로그인 중", "모바일에서는 네트워크 상태에 따라 몇 초 걸릴 수 있습니다.");
+      setStatus($("#authStatus"), "warn", "로그인 중", "이메일과 비밀번호를 확인하고 있습니다. 잠시만 기다려 주세요.");
       try {
         await ensureAuthPersistence();
         await signInWithEmailAndPassword(auth, fields.email, fields.password);
@@ -2442,18 +2507,26 @@ function initLotto() {
       }
     }
 
-    function initFirebase() {
+    async function initFirebase() {
       if (!isFirebaseConfigReady()) {
         setStatus($("#firebaseStatus"), "warn", "Firebase 설정값 필요", "index.html 안의 const firebaseConfig 값을 실제 값으로 교체해주세요.");
         setStatus($("#homeSyncStatus"), "warn", "로컬 저장 모드", "현재는 이 브라우저에만 저장됩니다. firebaseConfig 입력 후 로그인하면 Firestore 동기화가 됩니다.");
         return;
       }
       try {
+        setStatus($("#firebaseStatus"), "warn", "Firebase 준비 중", "로그인 기능을 불러오는 중입니다. 잠시만 기다려 주세요.");
+        await loadFirebaseSdk();
         app = initializeApp(firebaseConfig);
         auth = getAuth(app);
         db = getFirestore(app);
-        ensureAuthPersistence();
-        setStatus($("#firebaseStatus"), "good", "Firebase 초기화 완료", "Authentication과 Firestore를 사용할 준비가 되었습니다.");
+        await ensureAuthPersistence();
+        const hostWarning = getLoginHostWarning();
+        if (hostWarning) {
+          setStatus($("#firebaseStatus"), "warn", "미리보기 주소 주의", hostWarning);
+          setStatus($("#authStatus"), "warn", "GitHub 주소에서 로그인", hostWarning);
+        } else {
+          setStatus($("#firebaseStatus"), "good", "Firebase 초기화 완료", "Authentication과 Firestore를 사용할 준비가 되었습니다.");
+        }
         onAuthStateChanged(auth, async (user) => {
           currentUser = user;
           if (user) {
@@ -2461,13 +2534,20 @@ function initLotto() {
             setStatus($("#homeSyncStatus"), "good", "Firestore 동기화 가능", `${user.email} 계정 데이터와 동기화할 수 있습니다.`);
             await loadFromCloud(false);
           } else {
-            setStatus($("#authStatus"), "warn", "로그아웃 상태", "회원가입 또는 로그인 후 Firestore 동기화를 사용할 수 있습니다.");
+            const hostWarning = getLoginHostWarning();
+            if (hostWarning) {
+              setStatus($("#authStatus"), "warn", "GitHub 주소에서 로그인", hostWarning);
+            } else {
+              setStatus($("#authStatus"), "warn", "로그아웃 상태", "회원가입 또는 로그인 후 Firestore 동기화를 사용할 수 있습니다.");
+            }
             setStatus($("#homeSyncStatus"), "warn", "로컬 저장 모드", "로그인 전에는 이 브라우저에만 저장됩니다.");
           }
         });
       } catch (error) {
         console.error(error);
-        setStatus($("#firebaseStatus"), "bad", "Firebase 초기화 실패", error.message || "설정값을 다시 확인해주세요.");
+        const detail = error && error.message ? error.message : "설정값, 인터넷 연결, Firebase SDK 로드 상태를 확인해 주세요.";
+        setStatus($("#firebaseStatus"), "bad", "Firebase 초기화 실패", detail);
+        setStatus($("#authStatus"), "bad", "로그인 준비 실패", "Firebase 로그인 기능을 불러오지 못했습니다. GitHub 주소에서 새로고침한 뒤 다시 시도해 주세요.");
       }
     }
 
@@ -2683,7 +2763,7 @@ function initLotto() {
       });
     })();
   </script>
-<!-- ver48 개인블로그_드롭다운복구 · 최종 생성일자 2026-05-15 18:31:13 KST -->
-  <!-- 최종 생성일자: 2026-05-15 17:45:20 KST -->
+<!-- ver48 개인블로그_드롭다운복구 · 최종 생성일자 2026-05-15 18:44:05 KST -->
+  <!-- 최종 생성일자: 2026-05-15 18:44:05 KST -->
 </body>
 </html>
