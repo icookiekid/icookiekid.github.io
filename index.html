@@ -615,7 +615,7 @@
     }
 
   </style>
-  <!-- ver50 개인블로그_로그인버튼수정 · 최종 생성일자: 2026-05-15 19:20:30 KST -->
+  <!-- ver51 개인블로그_계좌삭제수정 · 최종 생성일자: 2026-05-15 19:20:30 KST -->
 </head>
 <body>
   <header>
@@ -1072,6 +1072,7 @@ service cloud.firestore {
       cardSettings: JSON.parse(JSON.stringify(defaultCardSettings)),
       banks: [...defaultBanks],
       bankBalances: Object.fromEntries(defaultBanks.map((bank) => [bank, 0])),
+      deletedBanks: [],
       profile: {
         name: "나의 개인 공간",
         intro: "일기, 메모, 가계부, 기록, 로또 자료를 한 곳에 모으는 개인블로그입니다.",
@@ -1129,11 +1130,19 @@ service cloud.firestore {
       return normalizeLottoDrawsForSync(seedLottoResults);
     }
 
+    function normalizeDeletedBanks(list) {
+      return Array.from(new Set((Array.isArray(list) ? list : [])
+        .map((name) => String(name || "").trim())
+        .filter(Boolean)));
+    }
+
     function normalizeWholeState(source) {
       const baseState = structuredClone(defaultData);
       const raw = source || {};
       const lottoDraws = getLottoDrawsFromAnySource(raw);
-      const bankNames = getBankNamesFrom(raw.banks);
+      const deletedBanks = normalizeDeletedBanks(raw.deletedBanks);
+      const isDeletedBank = (name) => deletedBanks.includes(String(name || "").trim());
+      const bankNames = getBankNamesFrom(raw.banks).filter((bank) => !isDeletedBank(bank));
       const cardNames = Array.isArray(raw.cards) && raw.cards.length ? raw.cards : [...defaultCards];
       const merged = {
         ...baseState,
@@ -1150,14 +1159,24 @@ service cloud.firestore {
         cards: cardNames,
         cardSettings: getCardSettingsFrom(raw, cardNames),
         banks: bankNames,
-        bankBalances: getBankBalancesFrom(raw, bankNames)
+        bankBalances: getBankBalancesFrom(raw, bankNames),
+        deletedBanks
       };
       if (!Array.isArray(merged.cards) || !merged.cards.length) merged.cards = [...defaultCards];
-      if (!Array.isArray(merged.banks) || !merged.banks.length) merged.banks = [...defaultBanks];
+      if (!Array.isArray(merged.banks)) merged.banks = [];
+      if (!merged.banks.length) merged.banks = [...defaultBanks].filter((bank) => !isDeletedBank(bank));
       merged.cardSettings = getCardSettingsFrom(merged, merged.cards);
-      Object.values(merged.cardSettings || {}).forEach((setting) => {
+      Object.entries(merged.cardSettings || {}).forEach(([cardName, setting]) => {
         const bank = setting && setting.bankAccount ? String(setting.bankAccount).trim() : "";
+        if (bank && isDeletedBank(bank)) {
+          merged.cardSettings[cardName] = { ...setting, bankAccount: "" };
+          return;
+        }
         if (bank && !merged.banks.includes(bank)) merged.banks.push(bank);
+      });
+      merged.banks = merged.banks.filter((bank) => !isDeletedBank(bank));
+      Object.keys(merged.bankBalances || {}).forEach((bank) => {
+        if (isDeletedBank(bank)) delete merged.bankBalances[bank];
       });
       merged.banks.forEach((bank) => {
         if (!Object.prototype.hasOwnProperty.call(merged.bankBalances, bank)) merged.bankBalances[bank] = 0;
@@ -1166,7 +1185,7 @@ service cloud.firestore {
         ? merged.ledger.map((item) => ({ ...item, method: item.method === "transfer" ? "bank" : item.method, bankEffectApplied: Boolean(item.bankEffectApplied) }))
         : [];
       merged.ledger.forEach((item) => {
-        if ((item.method === "bank" || item.method === "transfer") && item.bankAccount && !merged.banks.includes(item.bankAccount)) {
+        if ((item.method === "bank" || item.method === "transfer") && item.bankAccount && !isDeletedBank(item.bankAccount) && !merged.banks.includes(item.bankAccount)) {
           merged.banks.push(item.bankAccount);
           if (!Object.prototype.hasOwnProperty.call(merged.bankBalances, item.bankAccount)) merged.bankBalances[item.bankAccount] = 0;
         }
@@ -1322,9 +1341,11 @@ service cloud.firestore {
     function sanitizeCardSetting(setting, cardName) {
       const fallback = getDefaultCardSetting(cardName);
       const source = setting && typeof setting === "object" ? setting : {};
+      const hasExplicitBank = Object.prototype.hasOwnProperty.call(source, "bankAccount") || Object.prototype.hasOwnProperty.call(source, "bank");
+      const bankValue = hasExplicitBank ? (source.bankAccount ?? source.bank ?? "") : fallback.bankAccount;
       return {
         type: normalizeCardType(source.type || source.kind || fallback.type),
-        bankAccount: String(source.bankAccount || source.bank || fallback.bankAccount || "").trim()
+        bankAccount: String(bankValue || "").trim()
       };
     }
 
@@ -1346,6 +1367,8 @@ service cloud.firestore {
     function ensureLinkedBankAccount(bankName) {
       const clean = String(bankName || "").trim();
       if (!clean) return;
+      state.deletedBanks = normalizeDeletedBanks(state.deletedBanks);
+      if (state.deletedBanks.includes(clean)) return;
       ensureBankData();
       if (!state.banks.includes(clean)) state.banks.push(clean);
       if (!Object.prototype.hasOwnProperty.call(state.bankBalances, clean)) state.bankBalances[clean] = 0;
@@ -1438,9 +1461,14 @@ service cloud.firestore {
     }
 
     function ensureBankData() {
-      state.banks = getBankNamesFrom(state.banks);
-      if (!state.banks.length) state.banks = [...defaultBanks];
+      state.deletedBanks = normalizeDeletedBanks(state.deletedBanks);
+      const isDeletedBank = (name) => state.deletedBanks.includes(String(name || "").trim());
+      state.banks = getBankNamesFrom(state.banks).filter((bank) => !isDeletedBank(bank));
+      if (!state.banks.length) state.banks = [...defaultBanks].filter((bank) => !isDeletedBank(bank));
       state.bankBalances = getBankBalancesFrom(state, state.banks);
+      Object.keys(state.bankBalances || {}).forEach((bank) => {
+        if (isDeletedBank(bank)) delete state.bankBalances[bank];
+      });
       state.banks.forEach((bank) => {
         if (!Object.prototype.hasOwnProperty.call(state.bankBalances, bank)) state.bankBalances[bank] = 0;
       });
@@ -1755,6 +1783,7 @@ service cloud.firestore {
       ensureBankData();
       if (state.banks.includes(name)) return alert("이미 등록된 은행계좌입니다.");
       if (state.banks.length >= 12) return alert("은행계좌는 총 12개까지 등록할 수 있습니다.");
+      state.deletedBanks = normalizeDeletedBanks(state.deletedBanks).filter((bank) => bank !== name);
       state.banks.push(name);
       state.bankBalances[name] = toMoneyNumber(balanceInput?.value || 0);
       input.value = "";
@@ -1778,12 +1807,31 @@ service cloud.firestore {
 
     function removeBank(name) {
       ensureBankData();
-      if (!name) return alert("삭제할 은행계좌를 선택해 주세요.");
-      if (!confirm(`${name} 계좌를 목록에서 삭제하시겠습니까? 기존 가계부 내역은 삭제되지 않습니다.`)) return;
-      state.banks = (state.banks || []).filter((bank) => bank !== name);
-      if (state.bankBalances) delete state.bankBalances[name];
+      const cleanName = String(name || "").trim();
+      if (!cleanName) return alert("삭제할 은행계좌를 선택해 주세요.");
+      if (!confirm(`${cleanName} 계좌 자체를 삭제하시겠습니까?
+
+- 은행계좌 목록/드롭다운에서 완전히 사라집니다.
+- 계좌 잔액도 삭제됩니다.
+- 기존 가계부 내역은 기록 보존을 위해 지우지 않습니다.
+- 이 계좌에 연결된 카드가 있으면 카드 연결계좌는 비워집니다.`)) return;
+
+      state.deletedBanks = normalizeDeletedBanks([...(state.deletedBanks || []), cleanName]);
+      state.banks = (state.banks || []).filter((bank) => bank !== cleanName);
+      if (state.bankBalances) delete state.bankBalances[cleanName];
+
+      if (state.cardSettings && typeof state.cardSettings === "object") {
+        Object.keys(state.cardSettings).forEach((cardName) => {
+          const setting = state.cardSettings[cardName];
+          if (setting && String(setting.bankAccount || "").trim() === cleanName) {
+            state.cardSettings[cardName] = { ...setting, bankAccount: "" };
+          }
+        });
+      }
+
       saveLocalData();
       syncSelectedBankManager();
+      alert("은행계좌 자체가 삭제되었습니다. 기존 가계부 내역의 글자는 기록용으로만 남고, 계좌 목록에는 다시 나타나지 않습니다.");
     }
 
     function syncSelectedCardManager() {
@@ -1862,6 +1910,7 @@ service cloud.firestore {
       if (!newName) return alert("은행계좌 이름을 입력해 주세요.");
       if (newName !== oldName && state.banks.includes(newName)) return alert("이미 같은 이름의 은행계좌가 있습니다.");
       const balance = toMoneyNumber(balanceInput?.value || 0);
+      state.deletedBanks = normalizeDeletedBanks(state.deletedBanks).filter((bank) => bank !== newName);
       state.banks = state.banks.map((bank) => bank === oldName ? newName : bank);
       state.bankBalances[newName] = balance;
       if (newName !== oldName) delete state.bankBalances[oldName];
@@ -2820,7 +2869,7 @@ function initLotto() {
       });
     })();
   </script>
-<!-- ver50 개인블로그_로그인버튼수정 · 최종 생성일자: 2026-05-15 19:20:30 KST -->
-  <!-- 최종 생성일자: 2026-05-15 19:20:30 KST -->
+<!-- ver51 개인블로그_계좌삭제수정 · 최종 생성일자: 2026-05-15 19:32:03 KST -->
+  <!-- 최종 생성일자: 2026-05-15 19:32:03 KST -->
 </body>
 </html>
