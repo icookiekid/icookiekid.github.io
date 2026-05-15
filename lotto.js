@@ -652,6 +652,330 @@ function downloadExcel() {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+
+// =========================================================
+// 로또 QR코드 스캔 / 분석 기능
+// - 외부 라이브러리를 쓰지 않고 브라우저 기본 BarcodeDetector를 우선 사용합니다.
+// - 지원하지 않는 브라우저에서는 QR 내용 붙여넣기로 동일하게 분석할 수 있습니다.
+// =========================================================
+let qrStream = null;
+let qrScanRequestId = null;
+let qrDetector = null;
+let lastQrRawValue = "";
+let lastQrGames = [];
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function setQrStatus(message, type = "info") {
+  const box = document.getElementById("qrStatus");
+  if (!box) return;
+  const label = type === "error" ? "오류" : type === "success" ? "완료" : "안내";
+  box.innerHTML = `<b>${label}</b> · ${escapeHtml(message)}`;
+}
+
+function showQrResult(html) {
+  const box = document.getElementById("qrResult");
+  if (!box) return;
+  box.classList.remove("hidden");
+  box.innerHTML = html;
+}
+
+function hideQrResult() {
+  const box = document.getElementById("qrResult");
+  if (!box) return;
+  box.classList.add("hidden");
+  box.innerHTML = "";
+}
+
+function stopQrScanner() {
+  if (qrScanRequestId) {
+    cancelAnimationFrame(qrScanRequestId);
+    qrScanRequestId = null;
+  }
+  if (qrStream) {
+    qrStream.getTracks().forEach(track => track.stop());
+    qrStream = null;
+  }
+  const video = document.getElementById("qrVideo");
+  if (video) video.srcObject = null;
+  const wrap = document.getElementById("qrVideoWrap");
+  if (wrap) wrap.classList.add("hidden");
+}
+
+async function getQrDetector() {
+  if (!("BarcodeDetector" in window)) return null;
+  if (!qrDetector) qrDetector = new BarcodeDetector({ formats: ["qr_code"] });
+  return qrDetector;
+}
+
+async function startQrScanner() {
+  const video = document.getElementById("qrVideo");
+  const wrap = document.getElementById("qrVideoWrap");
+  if (!video || !wrap) return;
+  const detector = await getQrDetector();
+  if (!detector) {
+    setQrStatus("이 브라우저에서는 내장 QR 자동 인식 기능을 사용할 수 없습니다. 휴대폰 기본 카메라로 QR을 읽은 뒤 나온 주소를 QR 내용 칸에 붙여넣어 주세요.", "error");
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setQrStatus("카메라 접근 기능을 사용할 수 없습니다. QR 내용 붙여넣기를 이용해 주세요.", "error");
+    return;
+  }
+  try {
+    stopQrScanner();
+    setQrStatus("카메라 권한을 요청하고 있습니다. 권한 허용을 눌러 주세요.");
+    qrStream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    video.srcObject = qrStream;
+    wrap.classList.remove("hidden");
+    await video.play();
+    setQrStatus("QR코드를 카메라 화면 중앙에 맞춰 주세요.");
+    scanQrLoop();
+  } catch (error) {
+    console.warn("QR 카메라 시작 실패", error);
+    stopQrScanner();
+    setQrStatus("카메라를 열지 못했습니다. 브라우저 권한을 허용했는지 확인하거나 QR 내용 붙여넣기를 이용해 주세요.", "error");
+  }
+}
+
+async function scanQrLoop() {
+  const detector = await getQrDetector();
+  const video = document.getElementById("qrVideo");
+  if (!detector || !video || !qrStream) return;
+  try {
+    if (video.readyState >= 2) {
+      const codes = await detector.detect(video);
+      if (codes && codes.length) {
+        const raw = codes[0].rawValue || codes[0].rawData || "";
+        if (raw) {
+          stopQrScanner();
+          handleQrRawValue(raw);
+          return;
+        }
+      }
+    }
+  } catch (error) {
+    console.warn("QR 인식 중 오류", error);
+  }
+  qrScanRequestId = requestAnimationFrame(scanQrLoop);
+}
+
+async function readQrFromImageFile(file) {
+  const detector = await getQrDetector();
+  if (!detector) {
+    setQrStatus("이 브라우저에서는 QR 사진 자동 분석 기능을 사용할 수 없습니다. QR 내용을 직접 붙여넣어 주세요.", "error");
+    return;
+  }
+  try {
+    const bitmap = await createImageBitmap(file);
+    const codes = await detector.detect(bitmap);
+    if (bitmap.close) bitmap.close();
+    if (!codes || !codes.length) {
+      setQrStatus("사진에서 QR코드를 찾지 못했습니다. QR이 크게 보이도록 다시 찍어 주세요.", "error");
+      return;
+    }
+    handleQrRawValue(codes[0].rawValue || codes[0].rawData || "");
+  } catch (error) {
+    console.warn("QR 사진 분석 실패", error);
+    setQrStatus("QR 사진을 분석하지 못했습니다. 다른 사진으로 다시 시도해 주세요.", "error");
+  }
+}
+
+function decodePossiblyEncodedText(value) {
+  let text = String(value || "").trim();
+  for (let i = 0; i < 2; i += 1) {
+    try {
+      const decoded = decodeURIComponent(text.replace(/\+/g, "%20"));
+      if (decoded === text) break;
+      text = decoded;
+    } catch (_) { break; }
+  }
+  return text;
+}
+
+function getQrUrl(raw) {
+  const text = String(raw || "").trim();
+  try { return new URL(text); } catch (_) {}
+  try { return new URL(text, window.location.href); } catch (_) {}
+  return null;
+}
+
+function getSearchParamsFromQr(raw) {
+  const url = getQrUrl(raw);
+  return url ? url.searchParams : new URLSearchParams();
+}
+
+function normalizeQrGame(nums) {
+  const cleaned = (Array.isArray(nums) ? nums : [])
+    .map(Number)
+    .filter(n => Number.isInteger(n) && n >= 1 && n <= 45);
+  if (cleaned.length !== 6) return null;
+  if (new Set(cleaned).size !== 6) return null;
+  return [...cleaned].sort((a, b) => a - b);
+}
+
+function dedupeQrGames(games) {
+  const map = new Map();
+  games.forEach(game => {
+    const normalized = normalizeQrGame(game);
+    if (!normalized) return;
+    map.set(normalized.join(","), normalized);
+  });
+  return [...map.values()];
+}
+
+function extractTwoDigitQrGames(text) {
+  const games = [];
+  const source = String(text || "");
+  const re = /((?:0[1-9]|[1-3][0-9]|4[0-5]){6})/g;
+  let match;
+  while ((match = re.exec(source))) {
+    const chunk = match[1];
+    const nums = [];
+    for (let i = 0; i < chunk.length; i += 2) nums.push(Number(chunk.slice(i, i + 2)));
+    const normalized = normalizeQrGame(nums);
+    if (normalized) games.push(normalized);
+  }
+  return dedupeQrGames(games);
+}
+
+function extractSeparatedQrGames(text) {
+  const games = [];
+  const source = String(text || "");
+  const re = /(?:^|[^\d])((?:[1-9]|[1-3][0-9]|4[0-5])(?:[\s,|/;:_-]+(?:[1-9]|[1-3][0-9]|4[0-5])){5})(?!\d)/g;
+  let match;
+  while ((match = re.exec(source))) {
+    const nums = (match[1].match(/\d{1,2}/g) || []).map(Number);
+    const normalized = normalizeQrGame(nums);
+    if (normalized) games.push(normalized);
+  }
+  return dedupeQrGames(games);
+}
+
+function findQrRound(raw, payloads) {
+  const params = getSearchParamsFromQr(raw);
+  const keys = ["drwNo", "drw", "round", "draw", "drawNo", "lottoRound", "lotteryRound"];
+  for (const key of keys) {
+    const value = Number(params.get(key));
+    if (Number.isInteger(value) && value > 0) return value;
+  }
+  const joined = [String(raw || ""), ...payloads].join("\n");
+  const text = decodePossiblyEncodedText(joined);
+  const named = text.match(/(?:drwNo|drw_no|round|drawNo|draw|회차|회)[^0-9]{0,8}(\d{1,4})/i);
+  if (named) return Number(named[1]);
+  for (const payload of payloads) {
+    const p = String(payload || "");
+    for (const size of [4, 3]) {
+      const prefix = Number(p.slice(0, size));
+      if (Number.isInteger(prefix) && draws.some(d => d.round === prefix)) return prefix;
+    }
+  }
+  return null;
+}
+
+function parseLottoQrRaw(raw) {
+  const decoded = decodePossiblyEncodedText(raw);
+  const params = getSearchParamsFromQr(raw);
+  const payloads = [];
+  const priorityKeys = ["v", "value", "data", "qr", "qrcode", "lotto", "lotto645"];
+  priorityKeys.forEach(key => {
+    const value = params.get(key);
+    if (value) payloads.push(decodePossiblyEncodedText(value));
+  });
+  params.forEach(value => { if (value) payloads.push(decodePossiblyEncodedText(value)); });
+  payloads.push(decoded, String(raw || ""));
+
+  const uniquePayloads = [...new Set(payloads.filter(Boolean))];
+  let games = [];
+  for (const payload of uniquePayloads) {
+    games = games.concat(extractTwoDigitQrGames(payload));
+    games = games.concat(extractSeparatedQrGames(payload));
+  }
+  games = dedupeQrGames(games).slice(0, 10);
+  const round = findQrRound(raw, uniquePayloads);
+  const url = getQrUrl(raw);
+  return { raw: String(raw || ""), decoded, round, games, url: url ? url.href : "" };
+}
+
+function setRoundFromQr(round) {
+  if (!Number.isInteger(Number(round))) return false;
+  const target = Number(round);
+  const select = document.getElementById("roundSelect");
+  if (!select) return false;
+  const exists = draws.some(d => d.round === target);
+  if (!exists) return false;
+  select.value = target;
+  renderDrawInfo();
+  return true;
+}
+
+function applyQrGamesToCheck(result) {
+  const games = result.games || [];
+  if (!games.length) return;
+  const roundApplied = setRoundFromQr(Number(result.round));
+  writeTicketInputs(games[0]);
+  if (games.length > 1) {
+    setBulkGames(games);
+    checkBulk();
+  } else if (roundApplied || getSelectedDraw()) {
+    showSingleResult();
+  }
+}
+
+function renderQrParsedResult(result) {
+  lastQrGames = result.games || [];
+  const roundText = result.round ? `${result.round}회${setRoundFromQr(Number(result.round)) ? " · 회차 자동 선택됨" : " · 현재 데이터에 없는 회차일 수 있음"}` : "QR에서 회차를 확정하지 못했습니다.";
+  const openLink = result.url ? `<p><a href="${escapeHtml(result.url)}" target="_blank" rel="noopener noreferrer">QR 원본 링크 새 창으로 열기</a></p>` : "";
+  const gameList = lastQrGames.length ? `
+    <div class="qr-game-list">
+      ${lastQrGames.map((game, idx) => `
+        <div class="qr-game-item">
+          <strong>게임 ${idx + 1}: ${escapeHtml(game.join(", "))}</strong>
+          <button class="mini-btn" type="button" data-qr-game="${idx}">이 번호 당첨확인</button>
+        </div>`).join("")}
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button class="primary" id="qrApplyAllBtn" type="button">읽은 번호 바로 확인</button>
+      ${lastQrGames.length > 1 ? '<button class="soft" id="qrApplyBulkBtn" type="button">여러 게임 확인칸에 넣기</button>' : ''}
+    </div>` : `<p class="muted small">QR 내용에서 6개 번호 묶음을 자동 추출하지 못했습니다. 아래 원본 내용을 확인해 주세요.</p>`;
+
+  showQrResult(`
+    <div><b>읽은 회차</b>: ${escapeHtml(roundText)}</div>
+    <div style="margin-top:6px;"><b>추출된 게임 수</b>: ${lastQrGames.length}개</div>
+    ${gameList}
+    ${openLink}
+    <details style="margin-top:10px;"><summary>QR 원본 내용 보기</summary><pre style="white-space:pre-wrap; word-break:break-all; font-size:12px; background:#f3f4f6; padding:10px; border-radius:12px;">${escapeHtml(result.raw)}</pre></details>
+  `);
+}
+
+function handleQrRawValue(raw) {
+  const clean = String(raw || "").trim();
+  if (!clean) {
+    setQrStatus("QR 내용이 비어 있습니다.", "error");
+    return;
+  }
+  lastQrRawValue = clean;
+  const input = document.getElementById("qrRawInput");
+  if (input) input.value = clean;
+  const result = parseLottoQrRaw(clean);
+  renderQrParsedResult(result);
+  if (result.games.length) {
+    applyQrGamesToCheck(result);
+    setQrStatus("QR 내용을 읽고 번호를 당첨확인 칸에 반영했습니다. 화면의 번호가 실제 복권과 맞는지 한 번 확인해 주세요.", "success");
+  } else {
+    setQrStatus("QR은 읽었지만 번호 묶음을 자동 추출하지 못했습니다. QR 원본 링크를 열어 공식 결과를 확인하거나, QR 내용을 보내주시면 형식에 맞춰 파서를 보강할 수 있습니다.", "error");
+  }
+}
+
 document.getElementById('roundSelect').addEventListener('change', renderDrawInfo);
 document.getElementById('latestBtn').addEventListener('click', () => { document.getElementById('roundSelect').value = getLatestDraw().round; renderDrawInfo(); });
 document.getElementById('checkBtn').addEventListener('click', showSingleResult);
@@ -740,8 +1064,55 @@ document.getElementById('exportBtn').addEventListener('click', exportData);
 document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
 document.getElementById('importFile').addEventListener('change', e => { if (e.target.files[0]) importData(e.target.files[0]); });
 
+// QR 버튼 연결
+const qrStartBtn = document.getElementById('qrStartBtn');
+if (qrStartBtn) qrStartBtn.addEventListener('click', startQrScanner);
+const qrStopBtn = document.getElementById('qrStopBtn');
+if (qrStopBtn) qrStopBtn.addEventListener('click', () => { stopQrScanner(); setQrStatus('QR 스캔을 중지했습니다.'); });
+const qrImageBtn = document.getElementById('qrImageBtn');
+if (qrImageBtn) qrImageBtn.addEventListener('click', () => document.getElementById('qrImageFile')?.click());
+const qrImageFile = document.getElementById('qrImageFile');
+if (qrImageFile) qrImageFile.addEventListener('change', e => { if (e.target.files && e.target.files[0]) readQrFromImageFile(e.target.files[0]); });
+const qrParseBtn = document.getElementById('qrParseBtn');
+if (qrParseBtn) qrParseBtn.addEventListener('click', () => handleQrRawValue(document.getElementById('qrRawInput')?.value || ''));
+const qrClearBtn = document.getElementById('qrClearBtn');
+if (qrClearBtn) qrClearBtn.addEventListener('click', () => {
+  stopQrScanner();
+  const input = document.getElementById('qrRawInput');
+  if (input) input.value = '';
+  lastQrRawValue = '';
+  lastQrGames = [];
+  hideQrResult();
+  setQrStatus('QR 내용을 지웠습니다.');
+});
+const qrResultBox = document.getElementById('qrResult');
+if (qrResultBox) qrResultBox.addEventListener('click', (event) => {
+  const gameBtn = event.target.closest('[data-qr-game]');
+  if (gameBtn) {
+    const idx = Number(gameBtn.dataset.qrGame);
+    const game = lastQrGames[idx];
+    if (game) {
+      writeTicketInputs(game);
+      showSingleResult();
+      document.getElementById('checkBtn')?.focus();
+    }
+  }
+  if (event.target && event.target.id === 'qrApplyAllBtn') {
+    const parsed = parseLottoQrRaw(lastQrRawValue || document.getElementById('qrRawInput')?.value || '');
+    applyQrGamesToCheck(parsed);
+  }
+  if (event.target && event.target.id === 'qrApplyBulkBtn') {
+    if (lastQrGames.length) {
+      setBulkGames(lastQrGames);
+      checkBulk();
+    }
+  }
+});
+window.addEventListener('pagehide', stopQrScanner);
+window.addEventListener('beforeunload', stopQrScanner);
+
 ensureBulkRows(3);
 refreshUI();
 setTimeout(notifyParentLottoSync, 80);
 
-// ver52 개인블로그 로또분리보안 · 최종 생성일자: 2026-05-15 20:35:12 KST
+// ver53 개인블로그 QR계좌삭제확인 · 최종 생성일자: 2026-05-15 21:01:55 KST

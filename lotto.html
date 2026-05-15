@@ -195,6 +195,53 @@
     .extract-box h3 { margin:0 0 8px; font-size:15px; }
     .extract-detail { margin-top:10px; font-size:12px; color:#6b7280; line-height:1.6; }
     @media (max-width: 720px) { .extract-grid { grid-template-columns: 1fr; } }
+
+    .qr-panel {
+      border: 1px solid #dbeafe;
+      background: linear-gradient(135deg, #eff6ff, #fff7ed);
+      border-radius: 20px;
+      padding: 14px;
+      margin-top: 14px;
+    }
+    .qr-video-wrap {
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid #bfdbfe;
+      background: #111827;
+      margin-top: 10px;
+    }
+    #qrVideo {
+      width: 100%;
+      max-height: 320px;
+      display: block;
+      background: #111827;
+    }
+    #qrRawInput { min-height: 84px; font-size: 13px; }
+    .qr-result-card {
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px;
+      margin-top: 10px;
+      line-height: 1.55;
+    }
+    .qr-game-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .qr-game-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #f9fafb;
+    }
+    .qr-game-item strong { letter-spacing: -0.02em; }
+    @media (max-width: 560px) {
+      .qr-game-item { align-items: stretch; }
+      .qr-game-item button { width: 100%; }
+    }
   </style>
 <!-- ver41 lotto button/edit restore patch -->
 </head>
@@ -244,6 +291,32 @@
             <button class="ghost" type="button" data-preset="38,39,41,42,44,45">Gemini</button>
           </div>
           <div class="notice small" style="margin-top:10px">당첨확인용 제외추출/포함추출은 현재 선택된 기준 회차까지의 자료로 계산한 번호를 ① 당첨확인 칸에 자동 입력합니다. 예: 1222회 선택 → 1223회 확인용, 1223회 선택 → 1224회 확인용입니다.</div>
+
+          <div class="qr-panel" id="qrScannerPanel">
+            <h3 style="margin:0 0 8px; font-size:16px;">📷 로또 QR코드로 바로 확인</h3>
+            <p class="muted small" style="margin-top:0;">모바일에서 QR 스캔을 누른 뒤 로또용지 오른쪽 위 QR코드를 비추면, 읽힌 번호를 자동으로 당첨확인에 넣습니다. 인식된 번호는 먼저 화면에 표시됩니다.</p>
+            <div class="row">
+              <button class="primary" id="qrStartBtn" type="button">QR 스캔 시작</button>
+              <button class="ghost" id="qrStopBtn" type="button">스캔 중지</button>
+              <button class="soft" id="qrImageBtn" type="button">QR 사진 선택</button>
+              <input id="qrImageFile" class="hidden" type="file" accept="image/*" />
+            </div>
+            <div class="qr-video-wrap hidden" id="qrVideoWrap">
+              <video id="qrVideo" playsinline muted></video>
+            </div>
+            <canvas id="qrCanvas" class="hidden"></canvas>
+            <div class="field" style="margin-top:12px;">
+              <label for="qrRawInput">QR 내용 직접 붙여넣기 / 확인용</label>
+              <textarea id="qrRawInput" placeholder="QR을 스캔하면 읽힌 내용이 여기에 표시됩니다. 카메라 인식이 안 되면 휴대폰 기본 카메라로 QR을 읽고 나온 주소를 여기에 붙여넣어도 됩니다."></textarea>
+            </div>
+            <div class="row">
+              <button class="soft" id="qrParseBtn" type="button">QR 내용 분석</button>
+              <button class="ghost" id="qrClearBtn" type="button">QR 내용 지우기</button>
+            </div>
+            <div id="qrStatus" class="notice small" style="margin-top:10px;">QR 스캔 준비 상태입니다.</div>
+            <div id="qrResult" class="qr-result-card hidden"></div>
+          </div>
+
         </div>
 
         <div class="card">
@@ -382,7 +455,7 @@
     <div class="footer-note">※ 이 파일은 개인 확인용 도구입니다. 실제 당첨 여부와 지급 기준은 반드시 동행복권 공식 발표와 실물 복권으로 최종 확인하세요.</div>
   </main>
 
-<script src="./lotto.js?v=52" defer></script>
-<!-- ver52 개인블로그 로또분리보안 lotto.html · 최종 생성일자: 2026-05-15 20:35:12 KST -->
+<script src="./lotto.js?v=53" defer></script>
+<!-- ver53 개인블로그 QR계좌삭제확인 lotto.html · 최종 생성일자: 2026-05-15 21:01:55 KST -->
 </body>
 </html>
