@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <title>로또 당첨 확인 웹페이지</title>
+  <style>
+    :root {
+      --bg: #f7f8fc;
+      --panel: rgba(255,255,255,0.92);
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent: #f59e0b;
+      --good: #059669;
+      --bad: #dc2626;
+      --shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37,99,235,0.16), transparent 34%),
+        radial-gradient(circle at top right, rgba(245,158,11,0.18), transparent 28%),
+        var(--bg);
+      min-height: 100vh;
+    }
+    header {
+      padding: 34px 20px 22px;
+      text-align: center;
+    }
+    .eyebrow {
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    h1 { margin: 0; font-size: clamp(28px, 5vw, 46px); letter-spacing: -0.04em; }
+    .sub { margin: 12px auto 0; max-width: 860px; color: var(--muted); line-height: 1.65; }
+    main { width: min(1180px, calc(100% - 28px)); margin: 0 auto 54px; }
+    .grid { display:grid; grid-template-columns: 1.25fr 0.75fr; gap: 18px; align-items:start; }
+    @media (max-width: 920px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--panel);
+      border: 1px solid rgba(229,231,235,0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      margin-bottom: 18px;
+    }
+    .card h2 { margin: 0 0 14px; font-size: 21px; letter-spacing: -0.02em; }
+    .row { display:flex; flex-wrap:wrap; gap: 10px; align-items:center; }
+    .field { display:flex; flex-direction:column; gap: 7px; margin-bottom: 12px; }
+    label { font-size: 13px; font-weight: 800; color: #374151; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 14px;
+      padding: 12px 13px;
+      font-size: 15px;
+      background: #fff;
+      outline: none;
+      transition: 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37,99,235,0.12); }
+    textarea { min-height: 120px; resize: vertical; line-height: 1.55; }
+    .num-inputs { display:grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+    .num-inputs input { text-align:center; font-weight:900; font-size:17px; }
+    .game-list { display:flex; flex-direction:column; gap:12px; }
+    .game-row { border:1px solid var(--line); background:#f9fafb; border-radius:18px; padding:12px; }
+    .game-row-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .game-title { font-weight:1000; color:#111827; }
+    .game-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .mini-btn { border:1px solid var(--line); background:white; color:#374151; border-radius:999px; padding:7px 10px; font-size:12px; font-weight:900; cursor:pointer; }
+    .mini-btn:hover { border-color:var(--primary); color:var(--primary); }
+
+    .num-box {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding: 10px;
+      border:1px solid #eef2f7;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #ffffff, #f9fafb);
+    }
+    .num-box .num-label {
+      font-size: 12px;
+      font-weight: 1000;
+      color:#6b7280;
+      text-align:center;
+    }
+    .num-box input {
+      border-radius: 999px;
+      height: 46px;
+      padding: 8px;
+    }
+    .history-summary {
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+      margin: 12px 0;
+    }
+    .history-card {
+      border:1px solid #e5e7eb;
+      border-radius: 18px;
+      background:#f9fafb;
+      padding: 13px;
+    }
+    .history-card span { display:block; color:#6b7280; font-size:12px; font-weight:800; }
+    .history-card strong { display:block; font-size:20px; margin-top:3px; letter-spacing:-0.03em; }
+    .rank-badge {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:54px;
+      padding: 6px 10px;
+      border-radius:999px;
+      font-weight:1000;
+      background:#ecfdf5;
+      color:#047857;
+    }
+    .rank-badge.lost { background:#f3f4f6; color:#6b7280; }
+    @media (max-width: 620px) {
+      .num-box { padding: 8px; }
+      .history-summary { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) { .num-inputs { grid-template-columns: repeat(3, 1fr); } }
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 15px;
+      font-weight: 900;
+      cursor: pointer;
+      background: #111827;
+      color: #fff;
+      transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 12px 25px rgba(17,24,39,0.16); }
+    .primary { background: var(--primary); }
+    .primary:hover { background: var(--primary-dark); }
+    .soft { background:#eef2ff; color:#1d4ed8; }
+    .warn { background:#fff7ed; color:#c2410c; }
+    .danger { background:#fee2e2; color:#b91c1c; }
+    .ghost { background:#f3f4f6; color:#374151; }
+    .pillbox { display:flex; flex-wrap:wrap; gap: 8px; }
+    .ball {
+      width: 42px; height: 42px;
+      border-radius: 999px;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-weight: 900;
+      color:#111827;
+      background: linear-gradient(145deg, #fff7cc, #fbbf24);
+      box-shadow: inset -3px -5px 10px rgba(0,0,0,.08), 0 6px 12px rgba(0,0,0,.08);
+    }
+    .ball.blue { background: linear-gradient(145deg, #dbeafe, #60a5fa); }
+    .ball.red { background: linear-gradient(145deg, #fee2e2, #f87171); }
+    .ball.green { background: linear-gradient(145deg, #dcfce7, #34d399); }
+    .ball.gray { background: linear-gradient(145deg, #f3f4f6, #d1d5db); }
+    .bonus { outline: 3px solid rgba(245,158,11,.28); }
+    .result {
+      border-radius: 20px;
+      padding: 18px;
+      background: linear-gradient(135deg, #eff6ff, #fff7ed);
+      border: 1px solid #dbeafe;
+    }
+    .rank { font-size: 32px; font-weight: 1000; letter-spacing: -0.04em; margin-bottom: 6px; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    .divider { height:1px; background: var(--line); margin: 16px 0; }
+    table { width:100%; border-collapse:collapse; overflow:hidden; border-radius: 14px; }
+    th, td { border-bottom:1px solid var(--line); padding: 11px 9px; text-align:left; font-size: 14px; vertical-align:top; }
+    th { background:#f9fafb; font-weight:900; color:#374151; }
+    tr:last-child td { border-bottom: none; }
+    .scroll { overflow:auto; max-height: 390px; border:1px solid var(--line); border-radius: 16px; }
+    .statgrid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat { padding:14px; border-radius:18px; background:#f9fafb; border:1px solid #eef2f7; }
+    .stat strong { display:block; font-size:22px; }
+    .notice { padding: 13px 14px; border-radius: 16px; background:#fffbeb; border:1px solid #fde68a; line-height:1.55; }
+    .hidden { display:none !important; }
+    .footer-note { text-align:center; color:#6b7280; font-size:13px; line-height:1.6; padding: 8px 0 30px; }
+
+    .extract-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px; }
+    .extract-box { border:1px solid #e5e7eb; border-radius:18px; background:#f9fafb; padding:14px; }
+    .extract-box h3 { margin:0 0 8px; font-size:15px; }
+    .extract-detail { margin-top:10px; font-size:12px; color:#6b7280; line-height:1.6; }
+    @media (max-width: 720px) { .extract-grid { grid-template-columns: 1fr; } }
+  </style>
+<!-- ver41 lotto button/edit restore patch -->
+</head>
+<body>
+  <header>
+    <div class="eyebrow">🎯 1등~5등 자동 판정</div>
+    <h1>로또 당첨 확인 웹페이지</h1>
+    <p class="sub">업로드하신 엑셀의 <b>1회~1222회 당첨번호</b>를 기본 내장했습니다. 새 회차는 당첨번호 6개만 추가할 수 있으며, 입력 번호의 과거 당첨 이력과 출현횟수 정렬 대입 결과도 확인할 수 있으며, 추출 결과를 당첨확인 칸에 자동 입력할 수 있습니다. 정렬대입은 특정 번호 고정이 아니라 회차가 추가될 때마다 전체 데이터로 다시 계산됩니다.</p>
+  </header>
+
+  <main>
+    <section class="grid">
+      <div>
+        <div class="card">
+          <h2>① 번호 입력 후 당첨 확인</h2>
+          <div class="row" style="align-items:flex-end">
+            <div class="field" style="flex: 1 1 220px;">
+              <label for="roundSelect">확인할 회차</label>
+              <select id="roundSelect"></select>
+            </div>
+            <button class="ghost" id="latestBtn" type="button">최신 회차 선택</button>
+          </div>
+
+          <div class="field">
+            <label>내 번호 6개</label>
+            <div class="num-inputs" id="ticketInputs">
+              <div class="num-box"><span class="num-label">1번</span><input type="number" min="1" max="45" placeholder="1" inputmode="numeric" /></div>
+              <div class="num-box"><span class="num-label">2번</span><input type="number" min="1" max="45" placeholder="2" inputmode="numeric" /></div>
+              <div class="num-box"><span class="num-label">3번</span><input type="number" min="1" max="45" placeholder="3" inputmode="numeric" /></div>
+              <div class="num-box"><span class="num-label">4번</span><input type="number" min="1" max="45" placeholder="4" inputmode="numeric" /></div>
+              <div class="num-box"><span class="num-label">5번</span><input type="number" min="1" max="45" placeholder="5" inputmode="numeric" /></div>
+              <div class="num-box"><span class="num-label">6번</span><input type="number" min="1" max="45" placeholder="6" inputmode="numeric" /></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="primary" id="checkBtn" type="button">당첨 확인</button>
+            <button class="soft" id="sortBtn" type="button">번호 정렬</button>
+            <button class="ghost" id="clearBtn" type="button">입력 초기화</button>
+          </div>
+          <div class="divider"></div>
+          <div class="row">
+            <button class="primary" id="quickExtractNormalBtn" type="button">당첨확인용 제외추출 입력</button>
+            <button class="soft" id="quickExtractBonusBtn" type="button">당첨확인용 포함추출 입력</button>
+            <button class="ghost" type="button" data-preset="9,14,26,33,38,41">Claude</button>
+            <button class="warn" type="button" data-preset="14,33,38,41,44,45">GPT추천</button>
+            <button class="ghost" type="button" data-preset="38,39,41,42,44,45">Gemini</button>
+          </div>
+          <div class="notice small" style="margin-top:10px">당첨확인용 제외추출/포함추출은 현재 선택된 기준 회차까지의 자료로 계산한 번호를 ① 당첨확인 칸에 자동 입력합니다. 예: 1222회 선택 → 1223회 확인용, 1223회 선택 → 1224회 확인용입니다.</div>
+        </div>
+
+        <div class="card">
+          <h2>② 과거 회차 전체 검색</h2>
+          <p class="muted small">입력한 6개 번호가 과거 1~1222회 및 추가 저장 회차 중에서 <b>1등~5등</b>에 해당한 적이 있는지 확인합니다.</p>
+          <div class="field">
+            <label>과거 검색할 번호 6개</label>
+            <div class="num-inputs" id="historyInputs">
+              <div class="num-box"><span class="num-label">1번</span><input type="number" min="1" max="45" placeholder="1" inputmode="numeric" /></div>
+              <div class="num-box"><span class="num-label">2번</span><input type="number" min="1" max="45" placeholder="2" inputmode="numeric" /></div>
+              <div class="num-box"><span class="num-label">3번</span><input type="number" min="1" max="45" placeholder="3" inputmode="numeric" /></div>
+              <div class="num-box"><span class="num-label">4번</span><input type="number" min="1" max="45" placeholder="4" inputmode="numeric" /></div>
+              <div class="num-box"><span class="num-label">5번</span><input type="number" min="1" max="45" placeholder="5" inputmode="numeric" /></div>
+              <div class="num-box"><span class="num-label">6번</span><input type="number" min="1" max="45" placeholder="6" inputmode="numeric" /></div>
+            </div>
+          </div>
+          <div class="row">
+            <button class="primary" id="historyCheckBtn" type="button">과거 당첨 이력 검색</button>
+            <button class="soft" id="copyTicketToHistoryBtn" type="button">위 번호 복사</button>
+            <button class="ghost" id="historySortBtn" type="button">번호 정렬</button>
+            <button class="ghost" id="historyClearBtn" type="button">초기화</button>
+          </div>
+          <div id="historyResult" style="margin-top:14px">
+            <div class="notice small">번호 6개를 입력하면 과거 전체 회차에서 1등~5등 이력을 표로 보여드립니다.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>③ 여러 게임 한 번에 확인</h2>
+          <p class="muted small">여러 게임도 한 줄 텍스트 입력 없이, 게임별로 <b>1번~6번 독립 입력칸</b>에 넣도록 바꿨습니다.</p>
+          <div id="bulkGames" class="game-list"></div>
+          <div class="row" style="margin-top:12px">
+            <button class="soft" id="addBulkGameBtn" type="button">게임칸 추가</button>
+            <button class="ghost" id="removeBulkGameBtn" type="button">마지막 게임칸 삭제</button>
+            <button class="ghost" id="bulkSampleBtn" type="button">예시 넣기</button>
+            <button class="ghost" id="bulkClearBtn" type="button">전체 초기화</button>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <button class="primary" id="bulkCheckBtn" type="button">여러 게임 확인</button>
+          </div>
+          <div id="bulkResult" style="margin-top:14px"></div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card">
+          <h2>결과</h2>
+          <div id="singleResult" class="result">
+            <div class="rank">대기 중</div>
+            <div class="muted">번호 6개를 입력한 뒤 당첨 확인을 누르세요.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>선택 회차 당첨번호</h2>
+          <div id="drawInfo"></div>
+        </div>
+
+        <div class="card">
+          <h2>데이터 현황</h2>
+          <div class="statgrid">
+            <div class="stat"><span class="muted small">총 회차</span><strong id="totalRounds">-</strong></div>
+            <div class="stat"><span class="muted small">최신 회차</span><strong id="latestRound">-</strong></div>
+          </div>
+          <div class="divider"></div>
+          <div class="notice small">새 회차를 추가하면 현재 브라우저 저장공간에 저장됩니다. 필요할 때 JSON 백업 또는 엑셀 다운로드(.xlsx)로 내보낼 수 있습니다.</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2>④ 새 회차 추가 / 수정</h2>
+        <div class="field" style="max-width:180px;">
+          <label>회차</label>
+          <input id="addRound" type="number" min="1" placeholder="예: 1223">
+        </div>
+        <div class="field">
+          <label>새 회차 당첨번호 6개 + 보너스번호</label>
+          <div class="num-inputs" id="addNumberInputs">
+            <div class="num-box"><span class="num-label">1번</span><input type="number" min="1" max="45" placeholder="1" inputmode="numeric" /></div>
+            <div class="num-box"><span class="num-label">2번</span><input type="number" min="1" max="45" placeholder="2" inputmode="numeric" /></div>
+            <div class="num-box"><span class="num-label">3번</span><input type="number" min="1" max="45" placeholder="3" inputmode="numeric" /></div>
+            <div class="num-box"><span class="num-label">4번</span><input type="number" min="1" max="45" placeholder="4" inputmode="numeric" /></div>
+            <div class="num-box"><span class="num-label">5번</span><input type="number" min="1" max="45" placeholder="5" inputmode="numeric" /></div>
+            <div class="num-box"><span class="num-label">6번</span><input type="number" min="1" max="45" placeholder="6" inputmode="numeric" /></div>
+          </div>
+          <div class="num-inputs" style="grid-template-columns:minmax(130px,180px); margin-top:10px;">
+            <div class="num-box"><span class="num-label">보너스</span><input id="addBonus" type="number" min="1" max="45" placeholder="보너스" inputmode="numeric" /></div>
+          </div>
+        </div>
+        <div class="row">
+          <button class="primary" id="saveRoundBtn" type="button">회차 저장 + 정렬 대입 추출</button>
+          <button class="soft" id="loadSelectedRoundBtn" type="button">선택 회차 불러오기</button>
+          <button class="soft" id="extractLatestBtn" type="button">선택 회차로 정렬 대입 계산</button>
+          <button class="ghost" id="resetDataBtn" type="button">기본 1~1222회로 되돌리기</button>
+        </div>
+        <p class="muted small">같은 회차를 저장하면 기존 회차가 수정됩니다. 새 회차 추가/수정에서는 당첨번호 6개와 보너스번호를 함께 저장합니다.</p>
+        <div id="rankExtractResult" style="margin-top:14px">
+          <div class="notice small">회차를 저장하거나 선택 회차로 계산하면, 1~45 번호를 출현 횟수순으로 정렬한 표에 해당 회차 당첨번호를 위치값으로 대입해 6개 번호를 추출합니다. 보너스 제외 기준은 엑셀 검증 방식에 맞춰 1번째 번호는 해당 순번, 2~6번째 번호는 다음 순번으로 대입하고, 보너스 포함 기준은 해당 순번 그대로 대입합니다.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>⑤ 데이터 백업 / 불러오기</h2>
+        <div class="row">
+          <button class="soft" id="excelExportBtn" type="button">엑셀 다운로드(.xlsx)</button>
+          <button class="soft" id="exportBtn" type="button">JSON 내보내기</button>
+          <button class="ghost" id="importBtn" type="button">JSON 불러오기</button>
+          <input id="importFile" class="hidden" type="file" accept="application/json,.json" />
+        </div>
+        <div id="exportArea" class="hidden" style="margin-top:12px">
+          <textarea id="exportText" readonly></textarea>
+          <p class="muted small">JSON은 웹페이지 백업용이고, 엑셀 다운로드는 업로드하셨던 형식처럼 회차 / 당첨번호 1~6 / 보너스 구조로 저장합니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>등수 판정 기준</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>등수</th><th>조건</th><th>웹페이지 판정 방식</th></tr></thead>
+          <tbody>
+            <tr><td><b>1등</b></td><td>당첨번호 6개 모두 일치</td><td>6개 일치</td></tr>
+            <tr><td><b>2등</b></td><td>당첨번호 5개 + 보너스번호 일치</td><td>5개 일치 & 보너스 포함</td></tr>
+            <tr><td><b>3등</b></td><td>당첨번호 5개 일치</td><td>5개 일치</td></tr>
+            <tr><td><b>4등</b></td><td>당첨번호 4개 일치</td><td>4개 일치</td></tr>
+            <tr><td><b>5등</b></td><td>당첨번호 3개 일치</td><td>3개 일치</td></tr>
+            <tr><td><b>낙첨</b></td><td>그 외</td><td>0~2개 일치 또는 5개+보너스 조건 미충족</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="footer-note">※ 이 파일은 개인 확인용 도구입니다. 실제 당첨 여부와 지급 기준은 반드시 동행복권 공식 발표와 실물 복권으로 최종 확인하세요.</div>
+  </main>
+
+<script src="./lotto.js?v=52" defer></script>
+<!-- ver52 개인블로그 로또분리보안 lotto.html · 최종 생성일자: 2026-05-15 20:35:12 KST -->
+</body>
+</html>
