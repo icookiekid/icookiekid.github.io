@@ -525,8 +525,83 @@
       }
     }
 
+    .compact-help {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .compact-manager {
+      display: grid;
+      gap: 10px;
+    }
+    .manager-section {
+      display: grid;
+      gap: 6px;
+    }
+    .manager-label,
+    .manager-grid label {
+      display: grid;
+      gap: 6px;
+      color: var(--brown-dark);
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .manager-grid {
+      display: grid;
+      grid-template-columns: 1fr 0.8fr;
+      gap: 9px;
+      align-items: end;
+    }
+    .manager-grid-one {
+      grid-template-columns: 1fr;
+    }
+    .manager-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .manager-current {
+      margin: 0;
+      padding: 9px 11px;
+      border-radius: 14px;
+      background: rgba(138,90,59,.08);
+      color: var(--brown-dark);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.5;
+    }
+    .compact-add-box {
+      border-top: 1px dashed var(--line);
+      padding-top: 9px;
+    }
+    .compact-add-box summary {
+      cursor: pointer;
+      color: var(--brown-dark);
+      font-weight: 900;
+      font-size: 13px;
+      user-select: none;
+    }
+    .compact-add-tools {
+      margin-top: 10px;
+      margin-bottom: 0;
+    }
+    @media (max-width: 720px) {
+      .manager-grid,
+      .bank-add-tools,
+      .compact-add-tools {
+        grid-template-columns: 1fr;
+      }
+      .manager-actions .btn,
+      .compact-add-tools .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
   </style>
-  <!-- ver42 개인블로그_은행계좌잔액 · 최종 생성일자 2026-05-15 16:50:19 KST -->
+  <!-- ver43 개인블로그_가계부드롭다운 · 최종 생성일자 2026-05-15 17:20:31 KST -->
 </head>
 <body>
   <header>
@@ -633,23 +708,60 @@
         <div class="grid-2">
           <div class="panel">
             <h2>카드·은행계좌 관리</h2>
-            <div class="manager-box">
-              <div class="manager-title">카드 추가</div>
-              <div class="inline-tools">
-                <input id="newCardName" type="text" placeholder="예: KB가온, KB쿠팡, 삼성카드" />
-                <button class="btn btn-small btn-primary" type="button" id="addCardBtn">카드 추가</button>
+            <p class="compact-help">카드와 은행계좌를 한꺼번에 길게 보여주지 않고, 드롭다운에서 하나씩 선택해서 수정하도록 정리했습니다.</p>
+
+            <div class="manager-box compact-manager">
+              <div class="manager-title">카드 관리</div>
+              <div class="manager-section">
+                <label class="manager-label" for="cardManageSelect">수정할 카드 선택</label>
+                <select id="cardManageSelect"></select>
               </div>
-              <div id="cardManagerList" class="chip-list"></div>
+              <div class="manager-grid manager-grid-one">
+                <label>카드 이름 수정
+                  <input id="cardEditName" type="text" placeholder="예: KB가온 생활비카드" />
+                </label>
+              </div>
+              <div class="manager-actions">
+                <button class="btn btn-small btn-secondary" type="button" id="saveSelectedCardBtn">카드 이름 저장</button>
+                <button class="btn btn-small btn-danger" type="button" id="deleteSelectedCardBtn">선택 카드 삭제</button>
+              </div>
+              <p class="manager-current" id="cardSelectedInfo">카드를 선택하면 이름을 수정할 수 있습니다.</p>
+              <details class="compact-add-box">
+                <summary>새 카드 추가 열기</summary>
+                <div class="inline-tools compact-add-tools">
+                  <input id="newCardName" type="text" placeholder="예: KB가온, KB쿠팡, 삼성카드" />
+                  <button class="btn btn-small btn-primary" type="button" id="addCardBtn">카드 추가</button>
+                </div>
+              </details>
             </div>
-            <div class="manager-box">
-              <div class="manager-title">은행계좌 추가</div>
-              <div class="inline-tools bank-add-tools">
-                <input id="newBankName" type="text" placeholder="예: 국민은행 생활비, 카카오뱅크" />
-                <input id="newBankBalance" type="number" step="1" placeholder="현재 잔액(원)" />
-                <button class="btn btn-small btn-primary" type="button" id="addBankBtn">계좌 추가</button>
+
+            <div class="manager-box compact-manager">
+              <div class="manager-title">은행계좌 관리</div>
+              <div class="manager-section">
+                <label class="manager-label" for="bankManageSelect">수정할 은행계좌 선택</label>
+                <select id="bankManageSelect"></select>
               </div>
-              <p class="bank-balance-help">계좌를 추가할 때 현재 잔액을 입력할 수 있고, 아래 목록에서 계좌명과 잔액을 언제든지 수정할 수 있습니다.</p>
-              <div id="bankManagerList" class="bank-row-list"></div>
+              <div class="manager-grid">
+                <label>은행계좌 이름 수정
+                  <input id="bankEditName" type="text" placeholder="예: 국민은행 생활비" />
+                </label>
+                <label>현재 잔액 수정(원)
+                  <input id="bankEditBalance" type="number" step="1" placeholder="예: 1000000" />
+                </label>
+              </div>
+              <div class="manager-actions">
+                <button class="btn btn-small btn-primary" type="button" id="saveSelectedBankBtn">계좌 정보 저장</button>
+                <button class="btn btn-small btn-danger" type="button" id="deleteSelectedBankBtn">선택 계좌 삭제</button>
+              </div>
+              <p class="manager-current" id="bankSelectedInfo">계좌를 선택하면 이름과 잔액을 수정할 수 있습니다.</p>
+              <details class="compact-add-box">
+                <summary>새 은행계좌 추가 열기</summary>
+                <div class="inline-tools bank-add-tools compact-add-tools">
+                  <input id="newBankName" type="text" placeholder="예: 국민은행 생활비, 카카오뱅크" />
+                  <input id="newBankBalance" type="number" step="1" placeholder="현재 잔액(원)" />
+                  <button class="btn btn-small btn-primary" type="button" id="addBankBtn">계좌 추가</button>
+                </div>
+              </details>
             </div>
 
             <h2 style="margin-top:24px;">내역 입력</h2>
@@ -931,9 +1043,9 @@ service cloud.firestore {
         banks: bankNames,
         bankBalances: getBankBalancesFrom(raw, bankNames)
       };
-      defaultCards.forEach((card) => { if (!merged.cards.includes(card)) merged.cards.push(card); });
-      defaultBanks.forEach((bank) => {
-        if (!merged.banks.includes(bank)) merged.banks.push(bank);
+      if (!Array.isArray(merged.cards) || !merged.cards.length) merged.cards = [...defaultCards];
+      if (!Array.isArray(merged.banks) || !merged.banks.length) merged.banks = [...defaultBanks];
+      merged.banks.forEach((bank) => {
         if (!Object.prototype.hasOwnProperty.call(merged.bankBalances, bank)) merged.bankBalances[bank] = 0;
       });
       merged.ledger = Array.isArray(merged.ledger)
@@ -1081,9 +1193,9 @@ service cloud.firestore {
 
     function ensureBankData() {
       state.banks = getBankNamesFrom(state.banks);
+      if (!state.banks.length) state.banks = [...defaultBanks];
       state.bankBalances = getBankBalancesFrom(state, state.banks);
-      defaultBanks.forEach((bank) => {
-        if (!state.banks.includes(bank)) state.banks.push(bank);
+      state.banks.forEach((bank) => {
         if (!Object.prototype.hasOwnProperty.call(state.bankBalances, bank)) state.bankBalances[bank] = 0;
       });
     }
@@ -1230,6 +1342,12 @@ service cloud.firestore {
       $("#ledgerMethod")?.addEventListener("change", updateLedgerMethodState);
       $("#addCardBtn")?.addEventListener("click", addCardFromInput);
       $("#addBankBtn")?.addEventListener("click", addBankFromInput);
+      $("#cardManageSelect")?.addEventListener("change", syncSelectedCardManager);
+      $("#bankManageSelect")?.addEventListener("change", syncSelectedBankManager);
+      $("#saveSelectedCardBtn")?.addEventListener("click", saveSelectedCardFromDropdown);
+      $("#deleteSelectedCardBtn")?.addEventListener("click", deleteSelectedCardFromDropdown);
+      $("#saveSelectedBankBtn")?.addEventListener("click", saveSelectedBankFromDropdown);
+      $("#deleteSelectedBankBtn")?.addEventListener("click", deleteSelectedBankFromDropdown);
       $("#ledgerForm")?.addEventListener("submit", (event) => {
         event.preventDefault();
         const editId = editState.ledger;
@@ -1331,6 +1449,11 @@ service cloud.firestore {
       state.cards.push(name);
       input.value = "";
       saveLocalData();
+      const select = $("#cardManageSelect");
+      if (select) {
+        select.value = name;
+        syncSelectedCardManager();
+      }
     }
 
     function addBankFromInput() {
@@ -1346,80 +1469,127 @@ service cloud.firestore {
       input.value = "";
       if (balanceInput) balanceInput.value = "";
       saveLocalData();
+      const select = $("#bankManageSelect");
+      if (select) {
+        select.value = name;
+        syncSelectedBankManager();
+      }
     }
 
     function removeCard(name) {
-      if (defaultCards.includes(name)) return alert("기본 카드는 삭제하지 않는 것을 권장합니다.");
+      if (!name) return alert("삭제할 카드를 선택해 주세요.");
       if (!confirm(`${name} 카드를 목록에서 삭제하시겠습니까? 기존 가계부 내역은 삭제되지 않습니다.`)) return;
       state.cards = (state.cards || []).filter((card) => card !== name);
       saveLocalData();
+      syncSelectedCardManager();
     }
 
     function removeBank(name) {
       ensureBankData();
+      if (!name) return alert("삭제할 은행계좌를 선택해 주세요.");
       if (!confirm(`${name} 계좌를 목록에서 삭제하시겠습니까? 기존 가계부 내역은 삭제되지 않습니다.`)) return;
       state.banks = (state.banks || []).filter((bank) => bank !== name);
       if (state.bankBalances) delete state.bankBalances[name];
       saveLocalData();
+      syncSelectedBankManager();
     }
 
-    function renameBankFromRow(row, oldName) {
+    function syncSelectedCardManager() {
+      const select = $("#cardManageSelect");
+      const input = $("#cardEditName");
+      const info = $("#cardSelectedInfo");
+      const name = select?.value || "";
+      if (input) input.value = name;
+      if (info) info.textContent = name ? `현재 선택 카드: ${name}` : "등록된 카드가 없습니다. 새 카드를 추가해 주세요.";
+    }
+
+    function syncSelectedBankManager() {
       ensureBankData();
-      const input = row?.querySelector("[data-bank-name-input]");
-      const newName = input?.value.trim();
+      const select = $("#bankManageSelect");
+      const nameInput = $("#bankEditName");
+      const balanceInput = $("#bankEditBalance");
+      const info = $("#bankSelectedInfo");
+      const name = select?.value || "";
+      const balance = toMoneyNumber(state.bankBalances?.[name] || 0);
+      if (nameInput) nameInput.value = name;
+      if (balanceInput) balanceInput.value = name ? balance : "";
+      if (info) info.textContent = name ? `현재 선택 계좌: ${name} · 표시잔액 ${formatMoney(balance)}` : "등록된 은행계좌가 없습니다. 새 은행계좌를 추가해 주세요.";
+    }
+
+    function saveSelectedCardFromDropdown() {
+      const select = $("#cardManageSelect");
+      const input = $("#cardEditName");
+      const oldName = select?.value || "";
+      const newName = input?.value.trim() || "";
+      if (!oldName) return alert("수정할 카드를 먼저 선택해 주세요.");
+      if (!newName) return alert("카드 이름을 입력해 주세요.");
+      if (newName !== oldName && (state.cards || []).includes(newName)) return alert("이미 같은 이름의 카드가 있습니다.");
+      state.cards = (state.cards || []).map((card) => card === oldName ? newName : card);
+      state.ledger = (state.ledger || []).map((item) => item.card === oldName ? { ...item, card: newName } : item);
+      saveLocalData();
+      const refreshed = $("#cardManageSelect");
+      if (refreshed) refreshed.value = newName;
+      syncSelectedCardManager();
+      alert("카드 이름이 저장되었습니다.");
+    }
+
+    function deleteSelectedCardFromDropdown() {
+      const select = $("#cardManageSelect");
+      removeCard(select?.value || "");
+    }
+
+    function saveSelectedBankFromDropdown() {
+      ensureBankData();
+      const select = $("#bankManageSelect");
+      const nameInput = $("#bankEditName");
+      const balanceInput = $("#bankEditBalance");
+      const oldName = select?.value || "";
+      const newName = nameInput?.value.trim() || "";
+      if (!oldName) return alert("수정할 은행계좌를 먼저 선택해 주세요.");
       if (!newName) return alert("은행계좌 이름을 입력해 주세요.");
       if (newName !== oldName && state.banks.includes(newName)) return alert("이미 같은 이름의 은행계좌가 있습니다.");
+      const balance = toMoneyNumber(balanceInput?.value || 0);
       state.banks = state.banks.map((bank) => bank === oldName ? newName : bank);
-      if (state.bankBalances) {
-        state.bankBalances[newName] = Object.prototype.hasOwnProperty.call(state.bankBalances, oldName) ? toMoneyNumber(state.bankBalances[oldName]) : 0;
-        if (newName !== oldName) delete state.bankBalances[oldName];
-      }
+      state.bankBalances[newName] = balance;
+      if (newName !== oldName) delete state.bankBalances[oldName];
       state.ledger = (state.ledger || []).map((item) => item.bankAccount === oldName ? { ...item, bankAccount: newName } : item);
       saveLocalData();
-      alert("은행계좌 이름이 저장되었습니다.");
+      const refreshed = $("#bankManageSelect");
+      if (refreshed) refreshed.value = newName;
+      syncSelectedBankManager();
+      alert("은행계좌 이름과 잔액이 저장되었습니다.");
     }
 
-    function saveBankBalanceFromRow(row, name) {
-      ensureBankData();
-      const input = row?.querySelector("[data-bank-balance-input]");
-      if (!state.banks.includes(name)) return alert("먼저 계좌명을 저장해 주세요.");
-      state.bankBalances[name] = toMoneyNumber(input?.value || 0);
-      saveLocalData();
-      alert(`${name} 잔액이 저장되었습니다.`);
+    function deleteSelectedBankFromDropdown() {
+      const select = $("#bankManageSelect");
+      removeBank(select?.value || "");
+    }
+
+    function fillSelect(select, values, previousValue) {
+      if (!select) return "";
+      const safeValues = Array.isArray(values) ? values.filter(Boolean) : [];
+      select.innerHTML = safeValues.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+      const nextValue = previousValue && safeValues.includes(previousValue) ? previousValue : (safeValues[0] || "");
+      if (nextValue) select.value = nextValue;
+      return nextValue;
     }
 
     function renderLedgerManagers() {
-      if (!Array.isArray(state.cards)) state.cards = [...defaultCards];
+      if (!Array.isArray(state.cards) || !state.cards.length) state.cards = [...defaultCards];
       ensureBankData();
-      const cardSelect = $("#ledgerCard");
-      const bankSelect = $("#ledgerBank");
-      if (cardSelect) cardSelect.innerHTML = state.cards.map((card) => `<option value="${escapeHtml(card)}">${escapeHtml(card)}</option>`).join("");
-      if (bankSelect) bankSelect.innerHTML = state.banks.map((bank) => `<option value="${escapeHtml(bank)}">${escapeHtml(bank)}</option>`).join("");
-      const cardList = $("#cardManagerList");
-      const bankList = $("#bankManagerList");
-      if (cardList) cardList.innerHTML = state.cards.map((card) => `<span class="chip">${escapeHtml(card)}${defaultCards.includes(card) ? "" : `<button type="button" data-remove-card="${escapeHtml(card)}">×</button>`}</span>`).join("");
-      if (bankList) {
-        bankList.innerHTML = state.banks.map((bank) => {
-          const balance = toMoneyNumber(state.bankBalances?.[bank] || 0);
-          return `
-            <div class="bank-row" data-bank-row="${escapeHtml(bank)}">
-              <div class="bank-row-grid">
-                <label>계좌명
-                  <input type="text" value="${escapeHtml(bank)}" data-bank-name-input aria-label="은행계좌 이름">
-                </label>
-                <label>현재 잔액(원)
-                  <input type="number" step="1" value="${balance}" data-bank-balance-input aria-label="은행계좌 잔액">
-                </label>
-              </div>
-              <div class="bank-row-actions">
-                <button class="btn btn-small btn-secondary" type="button" data-rename-bank="${escapeHtml(bank)}">이름저장</button>
-                <button class="btn btn-small btn-primary" type="button" data-save-bank-balance="${escapeHtml(bank)}">잔액저장</button>
-                <button class="btn btn-small btn-danger" type="button" data-remove-bank="${escapeHtml(bank)}">삭제</button>
-                <span class="bank-row-balance">표시잔액 ${formatMoney(balance)}</span>
-              </div>
-            </div>`;
-        }).join("");
-      }
+
+      const ledgerCardValue = $("#ledgerCard")?.value || "";
+      const ledgerBankValue = $("#ledgerBank")?.value || "";
+      const cardManageValue = $("#cardManageSelect")?.value || "";
+      const bankManageValue = $("#bankManageSelect")?.value || "";
+
+      fillSelect($("#ledgerCard"), state.cards, ledgerCardValue);
+      fillSelect($("#ledgerBank"), state.banks, ledgerBankValue);
+      fillSelect($("#cardManageSelect"), state.cards, cardManageValue);
+      fillSelect($("#bankManageSelect"), state.banks, bankManageValue);
+
+      syncSelectedCardManager();
+      syncSelectedBankManager();
     }
 
     function updateLedgerMethodState() {
@@ -1540,10 +1710,6 @@ function renderProfile() {
       document.addEventListener("click", (event) => {
         const removeCardBtn = event.target.closest("[data-remove-card]");
         if (removeCardBtn) return removeCard(removeCardBtn.dataset.removeCard);
-        const renameBankBtn = event.target.closest("[data-rename-bank]");
-        if (renameBankBtn) return renameBankFromRow(renameBankBtn.closest(".bank-row"), renameBankBtn.dataset.renameBank);
-        const saveBankBalanceBtn = event.target.closest("[data-save-bank-balance]");
-        if (saveBankBalanceBtn) return saveBankBalanceFromRow(saveBankBalanceBtn.closest(".bank-row"), saveBankBalanceBtn.dataset.saveBankBalance);
         const removeBankBtn = event.target.closest("[data-remove-bank]");
         if (removeBankBtn) return removeBank(removeBankBtn.dataset.removeBank);
 
@@ -1998,6 +2164,7 @@ function initLotto() {
       });
     })();
   </script>
-<!-- ver42 개인블로그_은행계좌잔액 · 최종 생성일자 2026-05-15 16:50:19 KST -->
+<!-- ver43 개인블로그_가계부드롭다운 · 최종 생성일자 2026-05-15 17:20:31 KST -->
+  <!-- 최종 생성일자: 2026-05-15 17:20:31 KST -->
 </body>
 </html>
