@@ -346,6 +346,15 @@
     .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 12px; margin-bottom: 16px; }
     .summary-card { padding: 16px; border-radius: 20px; background: rgba(255,253,248,.75); border: 1px solid var(--line); }
     .summary-card b { display:block; font-size: 20px; color: var(--brown-dark); margin-top: 3px; }
+
+    .ledger-side-panels { display: grid; gap: 16px; align-content: start; }
+    .card-usage-tools { display: grid; gap: 8px; margin: 10px 0 14px; }
+    .card-usage-tools label { display: grid; gap: 6px; color: var(--brown-dark); font-size: 13px; font-weight: 900; }
+    .card-usage-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .card-usage-summary .summary-card { padding: 13px; border-radius: 16px; }
+    .card-usage-summary .summary-card b { font-size: 18px; }
+    .usage-note { margin: 0 0 10px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .usage-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: rgba(138,90,59,.09); color: var(--brown-dark); font-size: 12px; font-weight: 900; }
     .thumb { max-width: 160px; max-height: 120px; border-radius: 16px; border: 1px solid var(--line); display: block; margin-top: 10px; }
     .lotto-frame-wrap {
           border-radius: 28px;
@@ -556,6 +565,9 @@
     .manager-grid-one {
       grid-template-columns: 1fr;
     }
+    .card-link-grid {
+      grid-template-columns: 1.1fr 1fr 1fr;
+    }
     .manager-actions {
       display: flex;
       flex-wrap: wrap;
@@ -601,7 +613,7 @@
     }
 
   </style>
-  <!-- ver43 개인블로그_가계부드롭다운 · 최종 생성일자 2026-05-15 17:20:31 KST -->
+  <!-- ver46 개인블로그_카드별사용내역 · 최종 생성일자 2026-05-15 17:45:20 KST -->
 </head>
 <body>
   <header>
@@ -716,16 +728,25 @@
                 <label class="manager-label" for="cardManageSelect">수정할 카드 선택</label>
                 <select id="cardManageSelect"></select>
               </div>
-              <div class="manager-grid manager-grid-one">
+              <div class="manager-grid card-link-grid">
                 <label>카드 이름 수정
                   <input id="cardEditName" type="text" placeholder="예: KB가온 생활비카드" />
                 </label>
+                <label>카드 종류
+                  <select id="cardEditType">
+                    <option value="credit">신용카드 · 결제일에 계좌 차감</option>
+                    <option value="debit">체크카드 · 사용 즉시 계좌 차감</option>
+                  </select>
+                </label>
+                <label>결제/출금 계좌
+                  <select id="cardEditBank"></select>
+                </label>
               </div>
               <div class="manager-actions">
-                <button class="btn btn-small btn-secondary" type="button" id="saveSelectedCardBtn">카드 이름 저장</button>
+                <button class="btn btn-small btn-secondary" type="button" id="saveSelectedCardBtn">카드 정보 저장</button>
                 <button class="btn btn-small btn-danger" type="button" id="deleteSelectedCardBtn">선택 카드 삭제</button>
               </div>
-              <p class="manager-current" id="cardSelectedInfo">카드를 선택하면 이름을 수정할 수 있습니다.</p>
+              <p class="manager-current" id="cardSelectedInfo">카드를 선택하면 이름, 카드 종류, 결제/출금 계좌를 수정할 수 있습니다.</p>
               <details class="compact-add-box">
                 <summary>새 카드 추가 열기</summary>
                 <div class="inline-tools compact-add-tools">
@@ -776,8 +797,34 @@
               <div class="full"><label for="ledgerDesc">내용</label><input id="ledgerDesc" type="text" placeholder="예: 점심 식사, 월급, 카드 결제" /></div>
               <div class="full actions"><button class="btn btn-primary" type="submit" id="ledgerSubmitBtn">가계부 저장</button><button class="btn btn-outline" type="button" id="cancelLedgerEditBtn" style="display:none;">수정 취소</button></div>
             </form>
+
+            <div class="manager-box compact-manager card-payment-box">
+              <div class="manager-title">카드대금 결제</div>
+              <p class="compact-help">KB가온·KB쿠팡·KB쿠쿠는 사용금액은 카드 사용으로 따로 기록하고, 실제 카드대금이 빠지는 날 아래에서 결제하면 kb654 계좌 잔액에서 차감됩니다. KB체크는 체크카드라서 사용 즉시 kb8424 계좌에서 차감되고, 동시에 KB체크 사용금액으로 별도 기록됩니다.</p>
+              <form id="cardPaymentForm" class="form-grid">
+                <div><label for="cardPaymentDate">결제일</label><input id="cardPaymentDate" type="date" required /></div>
+                <div><label for="cardPaymentCard">결제 카드</label><select id="cardPaymentCard"></select></div>
+                <div><label for="cardPaymentAmount">결제 금액</label><input id="cardPaymentAmount" type="number" min="0" step="1" placeholder="예: 250000" required /></div>
+                <div><label for="cardPaymentBank">출금 계좌</label><select id="cardPaymentBank"></select></div>
+                <div class="full"><label for="cardPaymentDesc">메모</label><input id="cardPaymentDesc" type="text" placeholder="예: KB가온 5월 카드대금 결제" /></div>
+                <div class="full actions"><button class="btn btn-primary" type="submit">카드대금 결제 저장</button></div>
+              </form>
+            </div>
           </div>
-          <div class="panel"><h2>가계부 내역</h2><div id="ledgerList" class="list"></div></div>
+          <div class="ledger-side-panels">
+            <div class="panel card-usage-panel">
+              <h2>카드별 사용내역</h2>
+              <p class="compact-help">카드를 하나 선택하면 그 카드로 사용한 내역과 카드대금 결제 내역을 따로 확인할 수 있습니다. KB체크도 사용 즉시 계좌에서 차감되지만, 사용내역은 이곳에 따로 남습니다.</p>
+              <div class="card-usage-tools">
+                <label for="cardUsageSelect">확인할 카드 선택
+                  <select id="cardUsageSelect"></select>
+                </label>
+              </div>
+              <div id="cardUsageSummary" class="card-usage-summary"></div>
+              <div id="cardUsageList" class="list"></div>
+            </div>
+            <div class="panel"><h2>가계부 내역</h2><div id="ledgerList" class="list"></div></div>
+          </div>
         </div>
       </section>
     </section>
@@ -912,7 +959,7 @@ service cloud.firestore {
   </main>
 
   <footer>
-    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자 2026-05-15 16:50:19 KST
+    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자 2026-05-15 17:45:20 KST
   </footer>
 
   <script type="module">
@@ -955,7 +1002,13 @@ service cloud.firestore {
     const seedLottoResults = [];
 
     const defaultCards = ["KB가온", "KB쿠쿠", "KB쿠팡", "KB체크"];
-    const defaultBanks = ["국민은행", "카카오뱅크", "토스뱅크", "농협은행"];
+    const defaultBanks = ["국민은행", "카카오뱅크", "토스뱅크", "농협은행", "kb654", "kb8424"];
+    const defaultCardSettings = {
+      "KB가온": { type: "credit", bankAccount: "kb654" },
+      "KB쿠팡": { type: "credit", bankAccount: "kb654" },
+      "KB쿠쿠": { type: "credit", bankAccount: "kb654" },
+      "KB체크": { type: "debit", bankAccount: "kb8424" }
+    };
 
     const defaultData = {
       diary: [],
@@ -963,6 +1016,7 @@ service cloud.firestore {
       ledger: [],
       records: [],
       cards: [...defaultCards],
+      cardSettings: JSON.parse(JSON.stringify(defaultCardSettings)),
       banks: [...defaultBanks],
       bankBalances: Object.fromEntries(defaultBanks.map((bank) => [bank, 0])),
       profile: {
@@ -1027,6 +1081,7 @@ service cloud.firestore {
       const raw = source || {};
       const lottoDraws = getLottoDrawsFromAnySource(raw);
       const bankNames = getBankNamesFrom(raw.banks);
+      const cardNames = Array.isArray(raw.cards) && raw.cards.length ? raw.cards : [...defaultCards];
       const merged = {
         ...baseState,
         ...raw,
@@ -1039,17 +1094,23 @@ service cloud.firestore {
           draws: lottoDraws,
           updatedAt: raw.updatedAt || new Date().toISOString()
         },
-        cards: Array.isArray(raw.cards) && raw.cards.length ? raw.cards : [...defaultCards],
+        cards: cardNames,
+        cardSettings: getCardSettingsFrom(raw, cardNames),
         banks: bankNames,
         bankBalances: getBankBalancesFrom(raw, bankNames)
       };
       if (!Array.isArray(merged.cards) || !merged.cards.length) merged.cards = [...defaultCards];
       if (!Array.isArray(merged.banks) || !merged.banks.length) merged.banks = [...defaultBanks];
+      merged.cardSettings = getCardSettingsFrom(merged, merged.cards);
+      Object.values(merged.cardSettings || {}).forEach((setting) => {
+        const bank = setting && setting.bankAccount ? String(setting.bankAccount).trim() : "";
+        if (bank && !merged.banks.includes(bank)) merged.banks.push(bank);
+      });
       merged.banks.forEach((bank) => {
         if (!Object.prototype.hasOwnProperty.call(merged.bankBalances, bank)) merged.bankBalances[bank] = 0;
       });
       merged.ledger = Array.isArray(merged.ledger)
-        ? merged.ledger.map((item) => ({ ...item, method: item.method === "transfer" ? "bank" : item.method }))
+        ? merged.ledger.map((item) => ({ ...item, method: item.method === "transfer" ? "bank" : item.method, bankEffectApplied: Boolean(item.bankEffectApplied) }))
         : [];
       merged.ledger.forEach((item) => {
         if ((item.method === "bank" || item.method === "transfer") && item.bankAccount && !merged.banks.includes(item.bankAccount)) {
@@ -1191,6 +1252,138 @@ service cloud.firestore {
       return balances;
     }
 
+    function normalizeCardName(value) {
+      return String(value || "").replace(/\s+/g, "").toLowerCase();
+    }
+
+    function normalizeCardType(value) {
+      return value === "debit" ? "debit" : "credit";
+    }
+
+    function getDefaultCardSetting(cardName) {
+      const key = normalizeCardName(cardName);
+      const exact = Object.keys(defaultCardSettings).find((name) => normalizeCardName(name) === key);
+      return exact ? { ...defaultCardSettings[exact] } : { type: "credit", bankAccount: "" };
+    }
+
+    function sanitizeCardSetting(setting, cardName) {
+      const fallback = getDefaultCardSetting(cardName);
+      const source = setting && typeof setting === "object" ? setting : {};
+      return {
+        type: normalizeCardType(source.type || source.kind || fallback.type),
+        bankAccount: String(source.bankAccount || source.bank || fallback.bankAccount || "").trim()
+      };
+    }
+
+    function getCardSettingsFrom(raw, cardNames) {
+      const settings = {};
+      const rawSettings = raw && raw.cardSettings && typeof raw.cardSettings === "object" ? raw.cardSettings : {};
+      const normalizedRawSettings = {};
+      Object.entries(rawSettings).forEach(([name, value]) => {
+        normalizedRawSettings[normalizeCardName(name)] = value;
+      });
+      (Array.isArray(cardNames) ? cardNames : []).forEach((card) => {
+        const name = String(card || "").trim();
+        if (!name) return;
+        settings[name] = sanitizeCardSetting(rawSettings[name] || normalizedRawSettings[normalizeCardName(name)], name);
+      });
+      return settings;
+    }
+
+    function ensureLinkedBankAccount(bankName) {
+      const clean = String(bankName || "").trim();
+      if (!clean) return;
+      ensureBankData();
+      if (!state.banks.includes(clean)) state.banks.push(clean);
+      if (!Object.prototype.hasOwnProperty.call(state.bankBalances, clean)) state.bankBalances[clean] = 0;
+    }
+
+    function ensureCardSettings() {
+      if (!Array.isArray(state.cards) || !state.cards.length) state.cards = [...defaultCards];
+      if (!state.cardSettings || typeof state.cardSettings !== "object" || Array.isArray(state.cardSettings)) state.cardSettings = {};
+      state.cardSettings = getCardSettingsFrom(state, state.cards);
+      Object.values(state.cardSettings).forEach((setting) => {
+        if (setting && setting.bankAccount) ensureLinkedBankAccount(setting.bankAccount);
+      });
+    }
+
+    function getCardSetting(cardName) {
+      ensureCardSettings();
+      const name = String(cardName || "").trim();
+      return state.cardSettings[name] || getDefaultCardSetting(name);
+    }
+
+    function cardTypeLabel(type) {
+      return type === "debit" ? "체크카드" : "신용카드";
+    }
+
+    function cardEffectText(cardName) {
+      const setting = getCardSetting(cardName);
+      if (!cardName) return "카드를 선택해 주세요.";
+      if (setting.type === "debit") return `${cardName} · 체크카드 · 사용 즉시 ${setting.bankAccount || "연결계좌"}에서 차감 · 사용금액 별도 기록`;
+      return `${cardName} · 신용카드 · 사용금액은 따로 기록, 카드대금 결제 시 ${setting.bankAccount || "연결계좌"}에서 차감`;
+    }
+
+    function getCreditCardNames() {
+      ensureCardSettings();
+      return (state.cards || []).filter((card) => getCardSetting(card).type !== "debit");
+    }
+
+    function prepareLedgerPayloadForBankEffect(payload) {
+      const item = { ...payload, bankEffectApplied: true };
+      const method = item.method === "transfer" ? "bank" : item.method;
+      if (method === "card" && item.card) {
+        const setting = getCardSetting(item.card);
+        item.cardType = setting.type;
+        item.linkedBankAccount = setting.bankAccount || "";
+        item.cardUsageRecorded = true;
+        if (setting.type === "debit") {
+          item.bankAccount = setting.bankAccount || item.bankAccount || "";
+          item.debitBankDeducted = true;
+        }
+      }
+      if (method === "bank") item.linkedBankAccount = item.bankAccount || "";
+      return item;
+    }
+
+    function getLedgerBankEffects(item) {
+      if (!item) return [];
+      ensureCardSettings();
+      const amount = toMoneyNumber(item.amount || 0);
+      if (!amount) return [];
+      if (item.isCardPayment) {
+        const bank = String(item.bankAccount || item.linkedBankAccount || "").trim();
+        return bank ? [{ bank, delta: -amount }] : [];
+      }
+      const method = item.method === "transfer" ? "bank" : item.method;
+      if (method === "bank") {
+        const bank = String(item.bankAccount || "").trim();
+        if (!bank) return [];
+        if (item.type === "income") return [{ bank, delta: amount }];
+        if (item.type === "expense") return [{ bank, delta: -amount }];
+      }
+      if (method === "card" && item.card) {
+        const setting = getCardSetting(item.card);
+        const bank = String(setting.bankAccount || item.linkedBankAccount || item.bankAccount || "").trim();
+        if (setting.type !== "debit" || !bank) return [];
+        if (item.type === "income") return [{ bank, delta: amount }];
+        if (item.type === "expense") return [{ bank, delta: -amount }];
+      }
+      return [];
+    }
+
+    function applyLedgerBankEffect(item, direction = 1) {
+      if (!item || !item.bankEffectApplied) return;
+      ensureBankData();
+      getLedgerBankEffects(item).forEach(({ bank, delta }) => {
+        const clean = String(bank || "").trim();
+        if (!clean) return;
+        if (!state.banks.includes(clean)) state.banks.push(clean);
+        if (!Object.prototype.hasOwnProperty.call(state.bankBalances, clean)) state.bankBalances[clean] = 0;
+        state.bankBalances[clean] = toMoneyNumber(state.bankBalances[clean]) + (toMoneyNumber(delta) * direction);
+      });
+    }
+
     function ensureBankData() {
       state.banks = getBankNamesFrom(state.banks);
       if (!state.banks.length) state.banks = [...defaultBanks];
@@ -1292,7 +1485,7 @@ service cloud.firestore {
     }
 
     function initForms() {
-      ["diaryDate", "ledgerDate", "recordDate"].forEach((id) => { const el = $(`#${id}`); if (el) el.value = today(); });
+      ["diaryDate", "ledgerDate", "recordDate", "cardPaymentDate"].forEach((id) => { const el = $(`#${id}`); if (el) el.value = today(); });
 
       $("#diaryForm")?.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -1343,7 +1536,10 @@ service cloud.firestore {
       $("#addCardBtn")?.addEventListener("click", addCardFromInput);
       $("#addBankBtn")?.addEventListener("click", addBankFromInput);
       $("#cardManageSelect")?.addEventListener("change", syncSelectedCardManager);
+      $("#cardEditType")?.addEventListener("change", syncSelectedCardManager);
       $("#bankManageSelect")?.addEventListener("change", syncSelectedBankManager);
+      $("#cardPaymentCard")?.addEventListener("change", syncCardPaymentBank);
+      $("#cardUsageSelect")?.addEventListener("change", renderCardUsageDetails);
       $("#saveSelectedCardBtn")?.addEventListener("click", saveSelectedCardFromDropdown);
       $("#deleteSelectedCardBtn")?.addEventListener("click", deleteSelectedCardFromDropdown);
       $("#saveSelectedBankBtn")?.addEventListener("click", saveSelectedBankFromDropdown);
@@ -1353,7 +1549,7 @@ service cloud.firestore {
         const editId = editState.ledger;
         const previous = editId ? state.ledger.find((item) => item.id === editId) : null;
         const method = $("#ledgerMethod").value;
-        const payload = {
+        let payload = {
           id: editId || uid(),
           date: $("#ledgerDate").value,
           type: $("#ledgerType").value,
@@ -1366,12 +1562,45 @@ service cloud.firestore {
           createdAt: previous?.createdAt || new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
+        payload = prepareLedgerPayloadForBankEffect(payload);
         if (editId) {
+          applyLedgerBankEffect(previous, -1);
           state.ledger = state.ledger.map((item) => item.id === editId ? payload : item);
         } else {
           state.ledger.unshift(payload);
         }
+        applyLedgerBankEffect(payload, 1);
         resetLedgerForm(); saveLocalData();
+      });
+      $("#cardPaymentForm")?.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const card = $("#cardPaymentCard")?.value || "";
+        const setting = getCardSetting(card);
+        const bank = $("#cardPaymentBank")?.value || setting.bankAccount || "";
+        const amount = Number($("#cardPaymentAmount")?.value || 0);
+        if (!card) return alert("결제할 카드를 선택해 주세요.");
+        if (!bank) return alert("출금 계좌를 선택해 주세요.");
+        if (!amount) return alert("카드대금 결제 금액을 입력해 주세요.");
+        const payload = {
+          id: uid(),
+          date: $("#cardPaymentDate")?.value || today(),
+          type: "expense",
+          method: "bank",
+          amount,
+          card: "",
+          cardPaidFor: card,
+          bankAccount: bank,
+          linkedBankAccount: bank,
+          category: "카드대금결제",
+          desc: $("#cardPaymentDesc")?.value || `${card} 카드대금 결제`,
+          isCardPayment: true,
+          bankEffectApplied: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        state.ledger.unshift(payload);
+        applyLedgerBankEffect(payload, 1);
+        resetCardPaymentForm(); saveLocalData();
       });
       $("#cancelLedgerEditBtn")?.addEventListener("click", resetLedgerForm);
 
@@ -1431,6 +1660,12 @@ service cloud.firestore {
       updateLedgerMethodState();
     }
 
+    function resetCardPaymentForm() {
+      $("#cardPaymentForm")?.reset();
+      if ($("#cardPaymentDate")) $("#cardPaymentDate").value = today();
+      syncCardPaymentBank();
+    }
+
     function resetRecordForm() {
       editState.records = null;
       $("#recordForm")?.reset();
@@ -1447,6 +1682,9 @@ service cloud.firestore {
       if (state.cards.includes(name)) return alert("이미 등록된 카드입니다.");
       if (state.cards.length >= 10) return alert("카드는 총 10개까지 등록할 수 있습니다.");
       state.cards.push(name);
+      ensureCardSettings();
+      state.cardSettings[name] = getDefaultCardSetting(name);
+      if (state.cardSettings[name].bankAccount) ensureLinkedBankAccount(state.cardSettings[name].bankAccount);
       input.value = "";
       saveLocalData();
       const select = $("#cardManageSelect");
@@ -1480,6 +1718,7 @@ service cloud.firestore {
       if (!name) return alert("삭제할 카드를 선택해 주세요.");
       if (!confirm(`${name} 카드를 목록에서 삭제하시겠습니까? 기존 가계부 내역은 삭제되지 않습니다.`)) return;
       state.cards = (state.cards || []).filter((card) => card !== name);
+      if (state.cardSettings) delete state.cardSettings[name];
       saveLocalData();
       syncSelectedCardManager();
     }
@@ -1495,42 +1734,63 @@ service cloud.firestore {
     }
 
     function syncSelectedCardManager() {
+      ensureCardSettings();
       const select = $("#cardManageSelect");
       const input = $("#cardEditName");
+      const typeSelect = $("#cardEditType");
+      const bankSelect = $("#cardEditBank");
       const info = $("#cardSelectedInfo");
       const name = select?.value || "";
+      const setting = name ? getCardSetting(name) : { type: "credit", bankAccount: "" };
       if (input) input.value = name;
-      if (info) info.textContent = name ? `현재 선택 카드: ${name}` : "등록된 카드가 없습니다. 새 카드를 추가해 주세요.";
+      if (typeSelect) typeSelect.value = setting.type || "credit";
+      fillSelect(bankSelect, state.banks, setting.bankAccount);
+      if (info) {
+        info.textContent = name
+          ? `${cardEffectText(name)} · 카드 정보 저장 버튼을 누르면 적용됩니다.`
+          : "등록된 카드가 없습니다. 새 카드를 추가해 주세요.";
+      }
     }
 
-    function syncSelectedBankManager() {
-      ensureBankData();
-      const select = $("#bankManageSelect");
-      const nameInput = $("#bankEditName");
-      const balanceInput = $("#bankEditBalance");
-      const info = $("#bankSelectedInfo");
-      const name = select?.value || "";
-      const balance = toMoneyNumber(state.bankBalances?.[name] || 0);
-      if (nameInput) nameInput.value = name;
-      if (balanceInput) balanceInput.value = name ? balance : "";
-      if (info) info.textContent = name ? `현재 선택 계좌: ${name} · 표시잔액 ${formatMoney(balance)}` : "등록된 은행계좌가 없습니다. 새 은행계좌를 추가해 주세요.";
+    function syncCardPaymentBank() {
+      ensureCardSettings();
+      const cardSelect = $("#cardPaymentCard");
+      const bankSelect = $("#cardPaymentBank");
+      const card = cardSelect?.value || "";
+      const setting = card ? getCardSetting(card) : { bankAccount: "" };
+      fillSelect(bankSelect, state.banks, setting.bankAccount || $("#cardPaymentBank")?.value || "");
     }
 
     function saveSelectedCardFromDropdown() {
+      ensureCardSettings();
       const select = $("#cardManageSelect");
       const input = $("#cardEditName");
+      const typeSelect = $("#cardEditType");
+      const bankSelect = $("#cardEditBank");
       const oldName = select?.value || "";
       const newName = input?.value.trim() || "";
       if (!oldName) return alert("수정할 카드를 먼저 선택해 주세요.");
       if (!newName) return alert("카드 이름을 입력해 주세요.");
       if (newName !== oldName && (state.cards || []).includes(newName)) return alert("이미 같은 이름의 카드가 있습니다.");
+      const setting = {
+        type: normalizeCardType(typeSelect?.value || "credit"),
+        bankAccount: String(bankSelect?.value || "").trim()
+      };
+      if (setting.bankAccount) ensureLinkedBankAccount(setting.bankAccount);
       state.cards = (state.cards || []).map((card) => card === oldName ? newName : card);
-      state.ledger = (state.ledger || []).map((item) => item.card === oldName ? { ...item, card: newName } : item);
+      state.cardSettings[newName] = setting;
+      if (newName !== oldName) delete state.cardSettings[oldName];
+      state.ledger = (state.ledger || []).map((item) => {
+        let next = item;
+        if (next.card === oldName) next = { ...next, card: newName };
+        if (next.cardPaidFor === oldName) next = { ...next, cardPaidFor: newName };
+        return next;
+      });
       saveLocalData();
       const refreshed = $("#cardManageSelect");
       if (refreshed) refreshed.value = newName;
       syncSelectedCardManager();
-      alert("카드 이름이 저장되었습니다.");
+      alert("카드 이름, 카드 종류, 결제/출금 계좌가 저장되었습니다.");
     }
 
     function deleteSelectedCardFromDropdown() {
@@ -1577,19 +1837,30 @@ service cloud.firestore {
     function renderLedgerManagers() {
       if (!Array.isArray(state.cards) || !state.cards.length) state.cards = [...defaultCards];
       ensureBankData();
+      ensureCardSettings();
 
       const ledgerCardValue = $("#ledgerCard")?.value || "";
       const ledgerBankValue = $("#ledgerBank")?.value || "";
       const cardManageValue = $("#cardManageSelect")?.value || "";
       const bankManageValue = $("#bankManageSelect")?.value || "";
+      const cardPaymentCardValue = $("#cardPaymentCard")?.value || "";
+      const cardPaymentBankValue = $("#cardPaymentBank")?.value || "";
+      const cardUsageValue = $("#cardUsageSelect")?.value || "";
 
       fillSelect($("#ledgerCard"), state.cards, ledgerCardValue);
       fillSelect($("#ledgerBank"), state.banks, ledgerBankValue);
       fillSelect($("#cardManageSelect"), state.cards, cardManageValue);
       fillSelect($("#bankManageSelect"), state.banks, bankManageValue);
+      const creditCards = getCreditCardNames();
+      fillSelect($("#cardPaymentCard"), creditCards.length ? creditCards : state.cards, cardPaymentCardValue);
+      const selectedPaymentCard = $("#cardPaymentCard")?.value || "";
+      const selectedPaymentBank = selectedPaymentCard ? getCardSetting(selectedPaymentCard).bankAccount : cardPaymentBankValue;
+      fillSelect($("#cardPaymentBank"), state.banks, selectedPaymentBank || cardPaymentBankValue);
+      fillSelect($("#cardUsageSelect"), getAllCardNamesForUsage(), cardUsageValue);
 
       syncSelectedCardManager();
       syncSelectedBankManager();
+      syncCardPaymentBank();
     }
 
     function updateLedgerMethodState() {
@@ -1641,16 +1912,28 @@ function renderAll() {
       const list = $("#ledgerList");
       if (!summary || !list) return;
       ensureBankData();
+      ensureCardSettings();
       const totals = state.ledger.reduce((acc, item) => {
         const amount = Number(item.amount || 0);
         const method = item.method === "transfer" ? "bank" : item.method;
+        if (item.isCardPayment) {
+          acc.cardPayment += amount;
+          acc.bank += amount;
+          return acc;
+        }
         if (item.type === "income") acc.income += amount;
         if (item.type === "expense") acc.expense += amount;
-        if (method === "card") acc.card += amount;
+        if (method === "card") {
+          acc.card += amount;
+          const setting = getCardSetting(item.card);
+          if (setting.type === "debit") acc.debitCard += amount;
+          else acc.creditCard += amount;
+          if (normalizeCardName(item.card) === normalizeCardName("KB체크")) acc.kbCheck += amount;
+        }
         if (method === "cash") acc.cash += amount;
         if (method === "bank") acc.bank += amount;
         return acc;
-      }, { income: 0, expense: 0, card: 0, cash: 0, bank: 0 });
+      }, { income: 0, expense: 0, card: 0, creditCard: 0, debitCard: 0, kbCheck: 0, cash: 0, bank: 0, cardPayment: 0 });
       const balance = totals.income - totals.expense;
       const bankBalanceTotal = (state.banks || []).reduce((sum, bank) => sum + toMoneyNumber(state.bankBalances?.[bank] || 0), 0);
       summary.innerHTML = `
@@ -1659,19 +1942,137 @@ function renderAll() {
         <div class="summary-card">가계부 잔액<b>${formatMoney(balance)}</b></div>
         <div class="summary-card">은행계좌 총잔액<b>${formatMoney(bankBalanceTotal)}</b></div>
         <div class="summary-card">카드 사용<b>${formatMoney(totals.card)}</b></div>
-        <div class="summary-card">은행계좌 사용<b>${formatMoney(totals.bank)}</b></div>`;
+        <div class="summary-card">신용카드 사용<b>${formatMoney(totals.creditCard)}</b></div>
+        <div class="summary-card">체크카드 사용<b>${formatMoney(totals.debitCard)}</b></div>
+        <div class="summary-card">KB체크 사용<b>${formatMoney(totals.kbCheck)}</b></div>
+        <div class="summary-card">카드대금 결제<b>${formatMoney(totals.cardPayment)}</b></div>`;
+      renderCardUsageDetails();
       list.innerHTML = state.ledger.length ? state.ledger.map((item) => {
         const method = item.method === "transfer" ? "bank" : item.method;
-        const bankBalanceText = method === "bank" && item.bankAccount ? ` · 계좌잔액 ${formatMoney(state.bankBalances?.[item.bankAccount] || 0)}` : "";
-        const detail = method === "card" && item.card ? ` · ${escapeHtml(item.card)}` : method === "bank" && item.bankAccount ? ` · ${escapeHtml(item.bankAccount)}${bankBalanceText}` : "";
+        let detail = "";
+        let methodText = methodLabel(method);
+        if (item.isCardPayment) {
+          methodText = "카드대금 결제";
+          const bankBalanceText = item.bankAccount ? ` · 계좌잔액 ${formatMoney(state.bankBalances?.[item.bankAccount] || 0)}` : "";
+          detail = ` · ${escapeHtml(item.cardPaidFor || "카드")} · 출금계좌 ${escapeHtml(item.bankAccount || "")}${bankBalanceText}`;
+        } else if (method === "card" && item.card) {
+          const setting = getCardSetting(item.card);
+          const linked = item.linkedBankAccount || setting.bankAccount || "";
+          const effect = setting.type === "debit" ? "사용금액 기록 · 즉시출금" : "사용금액 기록 · 결제예정";
+          const bankBalanceText = setting.type === "debit" && linked ? ` · 계좌잔액 ${formatMoney(state.bankBalances?.[linked] || 0)}` : "";
+          detail = ` · ${escapeHtml(item.card)} · ${cardTypeLabel(setting.type)} · ${effect} ${escapeHtml(linked)}${bankBalanceText}`;
+        } else if (method === "bank" && item.bankAccount) {
+          const bankBalanceText = ` · 계좌잔액 ${formatMoney(state.bankBalances?.[item.bankAccount] || 0)}`;
+          detail = ` · ${escapeHtml(item.bankAccount)}${bankBalanceText}`;
+        }
         return `
         <article class="list-item">
-          <div class="meta">${escapeHtml(item.date)} · ${item.type === "income" ? "수입" : "지출"} · ${methodLabel(method)}${detail}</div>
+          <div class="meta">${escapeHtml(item.date)} · ${item.isCardPayment ? "결제" : (item.type === "income" ? "수입" : "지출")} · ${methodText}${detail}</div>
           <h3>${formatMoney(item.amount)} ${item.category ? "· " + escapeHtml(item.category) : ""}</h3>
           <p>${escapeHtml(item.desc || "내용 없음")}</p>
           <div class="actions"><button class="btn btn-small btn-secondary" type="button" data-edit="ledger" data-id="${item.id}">수정</button><button class="btn btn-small btn-danger" type="button" data-delete="ledger" data-id="${item.id}">삭제</button></div>
         </article>`;
       }).join("") : `<div class="empty">아직 저장된 가계부 내역이 없습니다.</div>`;
+    }
+
+
+    function getAllCardNamesForUsage() {
+      const names = new Set(Array.isArray(state.cards) ? state.cards.filter(Boolean) : []);
+      (state.ledger || []).forEach((item) => {
+        if (item && item.card) names.add(item.card);
+        if (item && item.cardPaidFor) names.add(item.cardPaidFor);
+      });
+      return [...names].filter(Boolean);
+    }
+
+    function getCardLedgerUsageItems(cardName) {
+      const target = String(cardName || "").trim();
+      if (!target) return [];
+      return (state.ledger || []).filter((item) => {
+        const method = item.method === "transfer" ? "bank" : item.method;
+        return !item.isCardPayment && method === "card" && item.card === target;
+      });
+    }
+
+    function getCardPaymentItems(cardName) {
+      const target = String(cardName || "").trim();
+      if (!target) return [];
+      return (state.ledger || []).filter((item) => item.isCardPayment && item.cardPaidFor === target);
+    }
+
+    function renderCardUsageDetails() {
+      const select = $("#cardUsageSelect");
+      const summary = $("#cardUsageSummary");
+      const list = $("#cardUsageList");
+      if (!select || !summary || !list) return;
+
+      const allCards = getAllCardNamesForUsage();
+      if (!allCards.length) {
+        summary.innerHTML = "";
+        list.innerHTML = `<div class="empty">아직 등록된 카드가 없습니다.</div>`;
+        return;
+      }
+
+      if (!select.value || !allCards.includes(select.value)) {
+        select.value = allCards[0];
+      }
+      const cardName = select.value;
+      const setting = getCardSetting(cardName);
+      const usageItems = getCardLedgerUsageItems(cardName);
+      const paymentItems = getCardPaymentItems(cardName);
+      const expenseUsageTotal = usageItems.reduce((sum, item) => item.type === "expense" ? sum + toMoneyNumber(item.amount) : sum, 0);
+      const incomeUsageTotal = usageItems.reduce((sum, item) => item.type === "income" ? sum + toMoneyNumber(item.amount) : sum, 0);
+      const netUsageTotal = Math.max(expenseUsageTotal - incomeUsageTotal, 0);
+      const paymentTotal = paymentItems.reduce((sum, item) => sum + toMoneyNumber(item.amount), 0);
+      const expectedPayment = setting.type === "debit" ? 0 : Math.max(netUsageTotal - paymentTotal, 0);
+      const linkedBank = setting.bankAccount || "연결계좌 없음";
+      const typeText = cardTypeLabel(setting.type);
+      const statusText = setting.type === "debit"
+        ? `체크카드 · ${linkedBank}에서 사용 즉시 차감 · 사용내역 별도 보관`
+        : `신용카드 · ${linkedBank}에서 카드대금 결제 시 차감`;
+
+      summary.innerHTML = `
+        <div class="summary-card">선택 카드<b>${escapeHtml(cardName)}</b></div>
+        <div class="summary-card">카드 종류<b>${escapeHtml(typeText)}</b></div>
+        <div class="summary-card">사용합계<b>${formatMoney(netUsageTotal)}</b></div>
+        <div class="summary-card">결제합계<b>${formatMoney(paymentTotal)}</b></div>
+        <div class="summary-card">남은 결제예정<b>${formatMoney(expectedPayment)}</b></div>`;
+
+      const rows = [
+        ...usageItems.map((item) => ({ kind: "usage", item })),
+        ...paymentItems.map((item) => ({ kind: "payment", item }))
+      ].sort((a, b) => {
+        const da = String(a.item.date || "");
+        const db = String(b.item.date || "");
+        if (da !== db) return db.localeCompare(da);
+        return String(b.item.createdAt || "").localeCompare(String(a.item.createdAt || ""));
+      });
+
+      if (!rows.length) {
+        list.innerHTML = `<p class="usage-note">${escapeHtml(statusText)}</p><div class="empty">${escapeHtml(cardName)} 카드 사용내역이 아직 없습니다.</div>`;
+        return;
+      }
+
+      list.innerHTML = `<p class="usage-note">${escapeHtml(statusText)}</p>` + rows.map(({ kind, item }) => {
+        if (kind === "payment") {
+          return `
+          <article class="list-item">
+            <div class="meta">${escapeHtml(item.date || "")} · <span class="usage-badge">카드대금 결제</span> · 출금계좌 ${escapeHtml(item.bankAccount || item.linkedBankAccount || "")}</div>
+            <h3>${formatMoney(item.amount)} ${item.category ? "· " + escapeHtml(item.category) : ""}</h3>
+            <p>${escapeHtml(item.desc || `${cardName} 카드대금 결제`)}</p>
+            <div class="actions"><button class="btn btn-small btn-danger" type="button" data-delete="ledger" data-id="${item.id}">삭제</button></div>
+          </article>`;
+        }
+        const linked = item.linkedBankAccount || setting.bankAccount || item.bankAccount || "";
+        const processText = setting.type === "debit" ? `즉시출금 ${linked}` : `결제예정 ${linked}`;
+        return `
+        <article class="list-item">
+          <div class="meta">${escapeHtml(item.date || "")} · ${item.type === "income" ? "수입/환불" : "지출"} · <span class="usage-badge">카드 사용</span> · ${escapeHtml(processText)}</div>
+          <h3>${formatMoney(item.amount)} ${item.category ? "· " + escapeHtml(item.category) : ""}</h3>
+          <p>${escapeHtml(item.desc || "내용 없음")}</p>
+          <div class="actions"><button class="btn btn-small btn-secondary" type="button" data-edit="ledger" data-id="${item.id}">수정</button><button class="btn btn-small btn-danger" type="button" data-delete="ledger" data-id="${item.id}">삭제</button></div>
+        </article>`;
+      }).join("");
     }
 
     function methodLabel(method) {
@@ -1725,6 +2126,10 @@ function renderProfile() {
         const id = btn.dataset.id;
         if (!Array.isArray(state[key])) return;
         if (!confirm("삭제하시겠습니까?")) return;
+        if (key === "ledger") {
+          const ledgerItem = state.ledger.find((item) => item.id === id);
+          applyLedgerBankEffect(ledgerItem, -1);
+        }
         state[key] = state[key].filter((item) => item.id !== id);
         saveLocalData();
       });
@@ -1753,6 +2158,10 @@ function renderProfile() {
         goPage("memo");
       }
       if (key === "ledger") {
+        if (item.isCardPayment) {
+          alert("카드대금 결제 내역은 삭제 후 다시 입력해 주세요. 중복 차감을 막기 위해 일반 수정창에서는 수정하지 않습니다.");
+          return;
+        }
         editState.ledger = id;
         $("#ledgerDate").value = item.date || today();
         $("#ledgerType").value = item.type || "expense";
@@ -2164,7 +2573,7 @@ function initLotto() {
       });
     })();
   </script>
-<!-- ver43 개인블로그_가계부드롭다운 · 최종 생성일자 2026-05-15 17:20:31 KST -->
-  <!-- 최종 생성일자: 2026-05-15 17:20:31 KST -->
+<!-- ver46 개인블로그_카드별사용내역 · 최종 생성일자 2026-05-15 17:45:20 KST -->
+  <!-- 최종 생성일자: 2026-05-15 17:45:20 KST -->
 </body>
 </html>
