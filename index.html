@@ -343,7 +343,7 @@
     th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 11px 10px; vertical-align: top; }
     th { color: var(--brown-dark); background: rgba(138,90,59,.08); font-size: 13px; }
     td { font-size: 14px; }
-    .summary-cards { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 16px; }
+    .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 12px; margin-bottom: 16px; }
     .summary-card { padding: 16px; border-radius: 20px; background: rgba(255,253,248,.75); border: 1px solid var(--line); }
     .summary-card b { display:block; font-size: 20px; color: var(--brown-dark); margin-top: 3px; }
     .thumb { max-width: 160px; max-height: 120px; border-radius: 16px; border: 1px solid var(--line); display: block; margin-top: 10px; }
@@ -460,8 +460,73 @@
       background: #f2eadf;
     }
 
+    .bank-add-tools {
+      grid-template-columns: 1.2fr 0.9fr auto;
+    }
+    .bank-balance-help {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .bank-row-list {
+      display: grid;
+      gap: 10px;
+      width: 100%;
+    }
+    .bank-row {
+      width: 100%;
+      padding: 12px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 250, 242, 0.86);
+    }
+    .bank-row-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 9px;
+      margin-bottom: 9px;
+    }
+    .bank-row label {
+      display: grid;
+      gap: 5px;
+      color: var(--brown-dark);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .bank-row input {
+      min-width: 0;
+    }
+    .bank-row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+    }
+    .bank-row-balance {
+      margin-left: auto;
+      color: var(--brown-dark);
+      font-size: 13px;
+      font-weight: 900;
+    }
+    @media (max-width: 720px) {
+      .bank-add-tools,
+      .bank-row-grid {
+        grid-template-columns: 1fr;
+      }
+      .bank-row-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .bank-row-balance {
+        width: 100%;
+        margin-left: 0;
+        text-align: center;
+      }
+    }
+
   </style>
-  <!-- ver41 로또입력수정_전체편집복구 · 최종 생성일자 2026-05-11 16:04:40 KST -->
+  <!-- ver42 개인블로그_은행계좌잔액 · 최종 생성일자 2026-05-15 16:50:19 KST -->
 </head>
 <body>
   <header>
@@ -578,11 +643,13 @@
             </div>
             <div class="manager-box">
               <div class="manager-title">은행계좌 추가</div>
-              <div class="inline-tools">
+              <div class="inline-tools bank-add-tools">
                 <input id="newBankName" type="text" placeholder="예: 국민은행 생활비, 카카오뱅크" />
+                <input id="newBankBalance" type="number" step="1" placeholder="현재 잔액(원)" />
                 <button class="btn btn-small btn-primary" type="button" id="addBankBtn">계좌 추가</button>
               </div>
-              <div id="bankManagerList" class="chip-list"></div>
+              <p class="bank-balance-help">계좌를 추가할 때 현재 잔액을 입력할 수 있고, 아래 목록에서 계좌명과 잔액을 언제든지 수정할 수 있습니다.</p>
+              <div id="bankManagerList" class="bank-row-list"></div>
             </div>
 
             <h2 style="margin-top:24px;">내역 입력</h2>
@@ -733,7 +800,7 @@ service cloud.firestore {
   </main>
 
   <footer>
-    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자 2026-05-11 16:04:40 KST
+    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자 2026-05-15 16:50:19 KST
   </footer>
 
   <script type="module">
@@ -785,6 +852,7 @@ service cloud.firestore {
       records: [],
       cards: [...defaultCards],
       banks: [...defaultBanks],
+      bankBalances: Object.fromEntries(defaultBanks.map((bank) => [bank, 0])),
       profile: {
         name: "나의 개인 공간",
         intro: "일기, 메모, 가계부, 기록, 로또 자료를 한 곳에 모으는 개인블로그입니다.",
@@ -846,6 +914,7 @@ service cloud.firestore {
       const baseState = structuredClone(defaultData);
       const raw = source || {};
       const lottoDraws = getLottoDrawsFromAnySource(raw);
+      const bankNames = getBankNamesFrom(raw.banks);
       const merged = {
         ...baseState,
         ...raw,
@@ -859,11 +928,23 @@ service cloud.firestore {
           updatedAt: raw.updatedAt || new Date().toISOString()
         },
         cards: Array.isArray(raw.cards) && raw.cards.length ? raw.cards : [...defaultCards],
-        banks: Array.isArray(raw.banks) && raw.banks.length ? raw.banks : [...defaultBanks]
+        banks: bankNames,
+        bankBalances: getBankBalancesFrom(raw, bankNames)
       };
       defaultCards.forEach((card) => { if (!merged.cards.includes(card)) merged.cards.push(card); });
-      defaultBanks.forEach((bank) => { if (!merged.banks.includes(bank)) merged.banks.push(bank); });
-      merged.ledger = Array.isArray(merged.ledger) ? merged.ledger.map((item) => ({ ...item, method: item.method === "transfer" ? "bank" : item.method })) : [];
+      defaultBanks.forEach((bank) => {
+        if (!merged.banks.includes(bank)) merged.banks.push(bank);
+        if (!Object.prototype.hasOwnProperty.call(merged.bankBalances, bank)) merged.bankBalances[bank] = 0;
+      });
+      merged.ledger = Array.isArray(merged.ledger)
+        ? merged.ledger.map((item) => ({ ...item, method: item.method === "transfer" ? "bank" : item.method }))
+        : [];
+      merged.ledger.forEach((item) => {
+        if ((item.method === "bank" || item.method === "transfer") && item.bankAccount && !merged.banks.includes(item.bankAccount)) {
+          merged.banks.push(item.bankAccount);
+          if (!Object.prototype.hasOwnProperty.call(merged.bankBalances, item.bankAccount)) merged.bankBalances[item.bankAccount] = 0;
+        }
+      });
       return merged;
     }
 
@@ -963,6 +1044,48 @@ service cloud.firestore {
 
     function formatMoney(value) {
       return Number(value || 0).toLocaleString("ko-KR") + "원";
+    }
+
+    function toMoneyNumber(value) {
+      const number = Number(String(value ?? "").replace(/,/g, ""));
+      return Number.isFinite(number) ? Math.round(number) : 0;
+    }
+
+    function getBankNamesFrom(rawBanks) {
+      if (!Array.isArray(rawBanks) || !rawBanks.length) return [...defaultBanks];
+      return rawBanks
+        .map((bank) => typeof bank === "string" ? bank : (bank && bank.name ? bank.name : ""))
+        .map((name) => String(name || "").trim())
+        .filter(Boolean);
+    }
+
+    function getBankBalancesFrom(raw, bankNames) {
+      const balances = {};
+      const rawBalances = raw && raw.bankBalances && typeof raw.bankBalances === "object" ? raw.bankBalances : {};
+      Object.entries(rawBalances).forEach(([name, value]) => {
+        const cleanName = String(name || "").trim();
+        if (cleanName) balances[cleanName] = toMoneyNumber(value);
+      });
+      if (Array.isArray(raw && raw.banks)) {
+        raw.banks.forEach((bank) => {
+          if (bank && typeof bank === "object" && bank.name) {
+            balances[String(bank.name).trim()] = toMoneyNumber(bank.balance);
+          }
+        });
+      }
+      bankNames.forEach((name) => {
+        if (!Object.prototype.hasOwnProperty.call(balances, name)) balances[name] = 0;
+      });
+      return balances;
+    }
+
+    function ensureBankData() {
+      state.banks = getBankNamesFrom(state.banks);
+      state.bankBalances = getBankBalancesFrom(state, state.banks);
+      defaultBanks.forEach((bank) => {
+        if (!state.banks.includes(bank)) state.banks.push(bank);
+        if (!Object.prototype.hasOwnProperty.call(state.bankBalances, bank)) state.bankBalances[bank] = 0;
+      });
     }
 
     async function fileToDataUrl(input) {
@@ -1212,13 +1335,16 @@ service cloud.firestore {
 
     function addBankFromInput() {
       const input = $("#newBankName");
+      const balanceInput = $("#newBankBalance");
       const name = input?.value.trim();
       if (!name) return alert("추가할 은행계좌 이름을 입력해 주세요.");
-      if (!Array.isArray(state.banks)) state.banks = [...defaultBanks];
+      ensureBankData();
       if (state.banks.includes(name)) return alert("이미 등록된 은행계좌입니다.");
       if (state.banks.length >= 12) return alert("은행계좌는 총 12개까지 등록할 수 있습니다.");
       state.banks.push(name);
+      state.bankBalances[name] = toMoneyNumber(balanceInput?.value || 0);
       input.value = "";
+      if (balanceInput) balanceInput.value = "";
       saveLocalData();
     }
 
@@ -1230,15 +1356,41 @@ service cloud.firestore {
     }
 
     function removeBank(name) {
-      if (defaultBanks.includes(name)) return alert("기본 은행계좌는 삭제하지 않는 것을 권장합니다.");
+      ensureBankData();
       if (!confirm(`${name} 계좌를 목록에서 삭제하시겠습니까? 기존 가계부 내역은 삭제되지 않습니다.`)) return;
       state.banks = (state.banks || []).filter((bank) => bank !== name);
+      if (state.bankBalances) delete state.bankBalances[name];
       saveLocalData();
+    }
+
+    function renameBankFromRow(row, oldName) {
+      ensureBankData();
+      const input = row?.querySelector("[data-bank-name-input]");
+      const newName = input?.value.trim();
+      if (!newName) return alert("은행계좌 이름을 입력해 주세요.");
+      if (newName !== oldName && state.banks.includes(newName)) return alert("이미 같은 이름의 은행계좌가 있습니다.");
+      state.banks = state.banks.map((bank) => bank === oldName ? newName : bank);
+      if (state.bankBalances) {
+        state.bankBalances[newName] = Object.prototype.hasOwnProperty.call(state.bankBalances, oldName) ? toMoneyNumber(state.bankBalances[oldName]) : 0;
+        if (newName !== oldName) delete state.bankBalances[oldName];
+      }
+      state.ledger = (state.ledger || []).map((item) => item.bankAccount === oldName ? { ...item, bankAccount: newName } : item);
+      saveLocalData();
+      alert("은행계좌 이름이 저장되었습니다.");
+    }
+
+    function saveBankBalanceFromRow(row, name) {
+      ensureBankData();
+      const input = row?.querySelector("[data-bank-balance-input]");
+      if (!state.banks.includes(name)) return alert("먼저 계좌명을 저장해 주세요.");
+      state.bankBalances[name] = toMoneyNumber(input?.value || 0);
+      saveLocalData();
+      alert(`${name} 잔액이 저장되었습니다.`);
     }
 
     function renderLedgerManagers() {
       if (!Array.isArray(state.cards)) state.cards = [...defaultCards];
-      if (!Array.isArray(state.banks)) state.banks = [...defaultBanks];
+      ensureBankData();
       const cardSelect = $("#ledgerCard");
       const bankSelect = $("#ledgerBank");
       if (cardSelect) cardSelect.innerHTML = state.cards.map((card) => `<option value="${escapeHtml(card)}">${escapeHtml(card)}</option>`).join("");
@@ -1246,7 +1398,28 @@ service cloud.firestore {
       const cardList = $("#cardManagerList");
       const bankList = $("#bankManagerList");
       if (cardList) cardList.innerHTML = state.cards.map((card) => `<span class="chip">${escapeHtml(card)}${defaultCards.includes(card) ? "" : `<button type="button" data-remove-card="${escapeHtml(card)}">×</button>`}</span>`).join("");
-      if (bankList) bankList.innerHTML = state.banks.map((bank) => `<span class="chip">${escapeHtml(bank)}${defaultBanks.includes(bank) ? "" : `<button type="button" data-remove-bank="${escapeHtml(bank)}">×</button>`}</span>`).join("");
+      if (bankList) {
+        bankList.innerHTML = state.banks.map((bank) => {
+          const balance = toMoneyNumber(state.bankBalances?.[bank] || 0);
+          return `
+            <div class="bank-row" data-bank-row="${escapeHtml(bank)}">
+              <div class="bank-row-grid">
+                <label>계좌명
+                  <input type="text" value="${escapeHtml(bank)}" data-bank-name-input aria-label="은행계좌 이름">
+                </label>
+                <label>현재 잔액(원)
+                  <input type="number" step="1" value="${balance}" data-bank-balance-input aria-label="은행계좌 잔액">
+                </label>
+              </div>
+              <div class="bank-row-actions">
+                <button class="btn btn-small btn-secondary" type="button" data-rename-bank="${escapeHtml(bank)}">이름저장</button>
+                <button class="btn btn-small btn-primary" type="button" data-save-bank-balance="${escapeHtml(bank)}">잔액저장</button>
+                <button class="btn btn-small btn-danger" type="button" data-remove-bank="${escapeHtml(bank)}">삭제</button>
+                <span class="bank-row-balance">표시잔액 ${formatMoney(balance)}</span>
+              </div>
+            </div>`;
+        }).join("");
+      }
     }
 
     function updateLedgerMethodState() {
@@ -1297,6 +1470,7 @@ function renderAll() {
       const summary = $("#ledgerSummary");
       const list = $("#ledgerList");
       if (!summary || !list) return;
+      ensureBankData();
       const totals = state.ledger.reduce((acc, item) => {
         const amount = Number(item.amount || 0);
         const method = item.method === "transfer" ? "bank" : item.method;
@@ -1308,15 +1482,18 @@ function renderAll() {
         return acc;
       }, { income: 0, expense: 0, card: 0, cash: 0, bank: 0 });
       const balance = totals.income - totals.expense;
+      const bankBalanceTotal = (state.banks || []).reduce((sum, bank) => sum + toMoneyNumber(state.bankBalances?.[bank] || 0), 0);
       summary.innerHTML = `
         <div class="summary-card">수입<b>${formatMoney(totals.income)}</b></div>
         <div class="summary-card">지출<b>${formatMoney(totals.expense)}</b></div>
-        <div class="summary-card">잔액<b>${formatMoney(balance)}</b></div>
+        <div class="summary-card">가계부 잔액<b>${formatMoney(balance)}</b></div>
+        <div class="summary-card">은행계좌 총잔액<b>${formatMoney(bankBalanceTotal)}</b></div>
         <div class="summary-card">카드 사용<b>${formatMoney(totals.card)}</b></div>
         <div class="summary-card">은행계좌 사용<b>${formatMoney(totals.bank)}</b></div>`;
       list.innerHTML = state.ledger.length ? state.ledger.map((item) => {
         const method = item.method === "transfer" ? "bank" : item.method;
-        const detail = method === "card" && item.card ? ` · ${escapeHtml(item.card)}` : method === "bank" && item.bankAccount ? ` · ${escapeHtml(item.bankAccount)}` : "";
+        const bankBalanceText = method === "bank" && item.bankAccount ? ` · 계좌잔액 ${formatMoney(state.bankBalances?.[item.bankAccount] || 0)}` : "";
+        const detail = method === "card" && item.card ? ` · ${escapeHtml(item.card)}` : method === "bank" && item.bankAccount ? ` · ${escapeHtml(item.bankAccount)}${bankBalanceText}` : "";
         return `
         <article class="list-item">
           <div class="meta">${escapeHtml(item.date)} · ${item.type === "income" ? "수입" : "지출"} · ${methodLabel(method)}${detail}</div>
@@ -1363,6 +1540,10 @@ function renderProfile() {
       document.addEventListener("click", (event) => {
         const removeCardBtn = event.target.closest("[data-remove-card]");
         if (removeCardBtn) return removeCard(removeCardBtn.dataset.removeCard);
+        const renameBankBtn = event.target.closest("[data-rename-bank]");
+        if (renameBankBtn) return renameBankFromRow(renameBankBtn.closest(".bank-row"), renameBankBtn.dataset.renameBank);
+        const saveBankBalanceBtn = event.target.closest("[data-save-bank-balance]");
+        if (saveBankBalanceBtn) return saveBankBalanceFromRow(saveBankBalanceBtn.closest(".bank-row"), saveBankBalanceBtn.dataset.saveBankBalance);
         const removeBankBtn = event.target.closest("[data-remove-bank]");
         if (removeBankBtn) return removeBank(removeBankBtn.dataset.removeBank);
 
@@ -1412,7 +1593,11 @@ function renderProfile() {
         $("#ledgerAmount").value = item.amount || "";
         $("#ledgerMethod").value = item.method === "transfer" ? "bank" : (item.method || "cash");
         if (item.card && !state.cards.includes(item.card)) state.cards.push(item.card);
-        if (item.bankAccount && !state.banks.includes(item.bankAccount)) state.banks.push(item.bankAccount);
+        ensureBankData();
+        if (item.bankAccount && !state.banks.includes(item.bankAccount)) {
+          state.banks.push(item.bankAccount);
+          state.bankBalances[item.bankAccount] = 0;
+        }
         renderLedgerManagers();
         if ($("#ledgerCard")) $("#ledgerCard").value = item.card || state.cards[0] || "";
         if ($("#ledgerBank")) $("#ledgerBank").value = item.bankAccount || state.banks[0] || "";
@@ -1813,7 +1998,6 @@ function initLotto() {
       });
     })();
   </script>
-<!-- ver33 로또 데이터 복구 · 통합 안정본 · 최종 생성일자 2026-05-11 16:04:40 KST -->
-<!-- ver35 로또 Firebase 동기화 수정 · 통합 안정본 · 최종 생성일자 2026-05-11 16:04:40 KST -->
+<!-- ver42 개인블로그_은행계좌잔액 · 최종 생성일자 2026-05-15 16:50:19 KST -->
 </body>
 </html>
