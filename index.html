@@ -353,6 +353,13 @@
     .card-usage-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
     .card-usage-summary .summary-card { padding: 13px; border-radius: 16px; }
     .card-usage-summary .summary-card b { font-size: 18px; }
+    .ledger-top-details { margin: 0 0 16px; align-items: start; }
+    .ledger-top-details .panel { min-height: 0; }
+    .ledger-detail-tools { display: grid; gap: 8px; margin: 10px 0 14px; }
+    .ledger-detail-tools label { display: grid; gap: 6px; color: var(--brown-dark); font-size: 13px; font-weight: 900; }
+    .compact-list .list-item { padding: 12px; border-radius: 16px; margin-bottom: 8px; }
+    .compact-list .list-item h3 { font-size: 16px; margin: 4px 0; }
+    .compact-list .list-item p { margin: 0; }
     .usage-note { margin: 0 0 10px; color: var(--muted); font-size: 13px; line-height: 1.55; }
     .usage-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: rgba(138,90,59,.09); color: var(--brown-dark); font-size: 12px; font-weight: 900; }
     .thumb { max-width: 160px; max-height: 120px; border-radius: 16px; border: 1px solid var(--line); display: block; margin-top: 10px; }
@@ -380,6 +387,98 @@
           gap: 10px;
           margin: 18px 0 20px;
         }
+
+
+    .ledger-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .overview-panel h2 { font-size: 24px; }
+    .bank-balance-list { display: grid; gap: 8px; }
+    .bank-balance-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 15px;
+      border: 1px solid var(--line);
+      background: rgba(255,253,248,.62);
+    }
+    .bank-balance-row strong { color: var(--brown-dark); }
+    .bank-balance-row span { font-weight: 900; color: var(--brown-dark); }
+    .ledger-history-list { display: block; width: 100%; }
+    .ledger-table-head,
+    .ledger-row {
+      display: grid;
+      grid-template-columns: 104px 76px 118px 150px 126px 128px minmax(190px, 1fr) 106px;
+      gap: 9px;
+      align-items: center;
+    }
+    .ledger-table-head {
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      border-radius: 15px;
+      background: rgba(138,90,59,.08);
+      border: 1px solid var(--line);
+      color: var(--brown-dark);
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .ledger-row {
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: 18px;
+      background: rgba(255,253,248,.72);
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 22px rgba(77, 51, 32, 0.05);
+    }
+    .ledger-row .cell-label { display: none; }
+    .ledger-row .ledger-date { color: var(--muted); font-size: 13px; font-weight: 800; }
+    .ledger-row .ledger-amount { font-size: 17px; font-weight: 950; color: var(--brown-dark); text-align: right; }
+    .ledger-row .ledger-desc { word-break: break-word; }
+    .ledger-row .row-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+    .ledger-kind {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      background: rgba(138,90,59,.09);
+      color: var(--brown-dark);
+    }
+    .ledger-kind-income { background: rgba(88,114,70,.13); color: var(--green); }
+    .ledger-kind-expense { background: rgba(139,63,54,.11); color: var(--red); }
+    .ledger-kind-payment { background: rgba(63,95,115,.12); color: var(--blue); }
+    @media (max-width: 1120px) {
+      .ledger-overview-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 820px) {
+      .ledger-table-head { display: none; }
+      .ledger-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      .ledger-row > div {
+        display: grid;
+        grid-template-columns: 86px minmax(0, 1fr);
+        gap: 8px;
+        align-items: center;
+      }
+      .ledger-row .cell-label {
+        display: inline;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+      }
+      .ledger-row .ledger-amount { text-align: left; }
+      .ledger-row .row-actions { justify-content: stretch; }
+      .ledger-row .row-actions .btn { flex: 1; }
+    }
 
     footer { padding: 42px 0 72px; text-align: center; color: var(--muted); font-size: 14px; }
 
@@ -615,7 +714,7 @@
     }
 
   </style>
-  <!-- ver54 개인블로그_삭제팝업수정 · 최종 생성일자: 2026-05-15 21:28:18 KST -->
+  <!-- ver56 개인블로그_가계부정리 · 최종 생성일자: 2026-05-16 00:06:17 KST -->
 </head>
 <body>
   <header>
@@ -646,7 +745,7 @@
         <div>
           <div class="badge">✦ Personal Blog · GitHub Pages + Firebase</div>
           <h1>나만의 기록을 조용히 모아두는<br /><span>개인블로그</span></h1>
-          <p>홈, 일기, 메모, 가계부, 기록, 프로필, 로또, Firebase 섹션을 하나의 <b>index.html</b>로 통합했습니다. 화면 내부 스크롤 없이 페이지 전체가 자연스럽게 스크롤됩니다.</p>
+          <p>홈, 일기, 메모, 가계부, 기록, 프로필, 로또, Firebase 섹션을 기존 블로그용으로 정리했습니다. 화면 내부 스크롤 없이 페이지 전체가 자연스럽게 스크롤됩니다.</p>
           <div class="actions">
             <button class="btn btn-primary" type="button" data-go="firebase">Firebase 연결하기</button>
             <button class="btn btn-secondary" type="button" data-go="diary">오늘 기록하기</button>
@@ -720,6 +819,41 @@
       </div>
       <section class="wrap">
         <div id="ledgerSummary" class="summary-cards"></div>
+        <div class="grid-3 ledger-overview-grid ledger-top-details">
+          <div class="panel overview-panel">
+            <h2>카드별 사용금액</h2>
+            <p class="compact-help">카드를 추가하면 이 드롭다운에도 자동으로 나타납니다. 카드별 사용금액, 결제금액, 결제예정 금액을 한눈에 확인합니다.</p>
+            <div class="ledger-detail-tools">
+              <label for="ledgerTopCardUsageSelect">확인할 카드 선택
+                <select id="ledgerTopCardUsageSelect"></select>
+              </label>
+            </div>
+            <div id="ledgerTopCardUsageSummary" class="card-usage-summary"></div>
+            <div id="ledgerTopCardUsageList" class="list compact-list"></div>
+          </div>
+          <div class="panel overview-panel">
+            <h2>수입·지출 상세 확인</h2>
+            <p class="compact-help">전체 내역, 전체 수입, 전체 지출, 수입 종류별, 지출 종류별 내역을 드롭다운으로 골라 확인합니다.</p>
+            <div class="ledger-detail-tools">
+              <label for="ledgerDetailSelect">확인할 항목 선택
+                <select id="ledgerDetailSelect"></select>
+              </label>
+            </div>
+            <div id="ledgerDetailSummary" class="card-usage-summary"></div>
+            <div id="ledgerDetailList" class="list compact-list"></div>
+          </div>
+          <div class="panel overview-panel">
+            <h2>통장별 잔고</h2>
+            <p class="compact-help">전체 계좌 잔액과 선택한 통장의 현재 잔고, 최근 입출금 내역을 함께 확인합니다.</p>
+            <div class="ledger-detail-tools">
+              <label for="bankBalanceDetailSelect">확인할 통장 선택
+                <select id="bankBalanceDetailSelect"></select>
+              </label>
+            </div>
+            <div id="bankBalanceDetailSummary" class="card-usage-summary"></div>
+            <div id="bankBalanceDetailList" class="list compact-list"></div>
+          </div>
+        </div>
         <div class="grid-2">
           <div class="panel">
             <h2>카드·은행계좌 관리</h2>
@@ -796,7 +930,7 @@
               <div><label for="ledgerMethod">수단</label><select id="ledgerMethod"><option value="cash">현금</option><option value="card">카드</option><option value="bank">은행계좌</option></select></div>
               <div><label for="ledgerCard">카드명</label><select id="ledgerCard" disabled></select></div>
               <div><label for="ledgerBank">은행계좌</label><select id="ledgerBank" disabled></select></div>
-              <div><label for="ledgerCategory">분류</label><select id="ledgerCategory"><option>월급</option><option>부수입</option><option>식비</option><option>교통</option><option>통신</option><option>주거</option><option>공과금</option><option>보험</option><option>의료</option><option>쇼핑</option><option>교육</option><option>문화</option><option>저축</option><option>이체</option><option>기타</option></select></div>
+              <div><label for="ledgerCategory">분류</label><select id="ledgerCategory"><option>월급</option><option>부수입</option><option>상여금</option><option>보너스</option><option>이자수입</option><option>배당금</option><option>환급</option><option>중고판매</option><option>용돈</option><option>지원금</option><option>기타수입</option></select></div>
               <div class="full"><label for="ledgerDesc">내용</label><input id="ledgerDesc" type="text" placeholder="예: 점심 식사, 월급, 카드 결제" /></div>
               <div class="full actions"><button class="btn btn-primary" type="submit" id="ledgerSubmitBtn">가계부 저장</button><button class="btn btn-outline" type="button" id="cancelLedgerEditBtn" style="display:none;">수정 취소</button></div>
             </form>
@@ -826,9 +960,9 @@
               <div id="cardUsageSummary" class="card-usage-summary"></div>
               <div id="cardUsageList" class="list"></div>
             </div>
-            <div class="panel"><h2>가계부 내역</h2><div id="ledgerList" class="list"></div></div>
           </div>
         </div>
+        <div class="panel ledger-list-panel"><h2>가계부 사용내역</h2><p class="compact-help">날짜, 구분, 수단, 카드/통장, 분류, 금액, 내용을 가로형 목록으로 정리했습니다. 넓은 화면에서는 가로형 표처럼 보이고, 모바일에서는 항목별로 접히듯 정리됩니다.</p><div id="ledgerList" class="ledger-history-list"></div></div>
       </section>
     </section>
 
@@ -890,7 +1024,7 @@
 
       <section class="wrap">
         <div class="lotto-frame-wrap">
-          <iframe id="lottoFrame" class="lotto-frame" title="로또 당첨 확인 웹페이지" src="./lotto.html?v=53" loading="lazy" scrolling="no" allow="camera"></iframe>
+          <iframe id="lottoFrame" class="lotto-frame" title="로또 당첨 확인 웹페이지" src="./lotto.html?v=55" loading="lazy" scrolling="no" allow="camera"></iframe>
         </div>
       </section>
     </section>
@@ -966,7 +1100,7 @@ service cloud.firestore {
   </main>
 
   <footer>
-    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-05-15 21:28:18 KST
+    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-05-16 00:06:17 KST
   </footer>
 
   <script type="module">
@@ -1060,6 +1194,13 @@ service cloud.firestore {
       "KB쿠쿠": { type: "credit", bankAccount: "kb654" },
       "KB체크": { type: "debit", bankAccount: "kb8424" }
     };
+    const defaultIncomeCategories = ["월급", "부수입", "상여금", "보너스", "이자수입", "배당금", "환급", "중고판매", "용돈", "지원금", "기타수입"];
+    const defaultExpenseCategories = ["식비", "교통", "통신", "주거", "공과금", "보험", "의료", "쇼핑", "교육", "문화", "저축", "이체", "카드대금결제", "기타"];
+    const ALL_LEDGER_OPTION = "전체 내역";
+    const ALL_INCOME_OPTION = "전체 수입";
+    const ALL_EXPENSE_OPTION = "전체 지출";
+    const CARD_PAYMENT_OPTION = "카드대금 결제";
+    const ALL_BANK_OPTION = "전체 계좌";
 
     const defaultData = {
       diary: [],
@@ -1071,6 +1212,7 @@ service cloud.firestore {
       banks: [...defaultBanks],
       bankBalances: Object.fromEntries(defaultBanks.map((bank) => [bank, 0])),
       deletedBanks: [],
+      deletedCards: [],
       profile: {
         name: "나의 개인 공간",
         intro: "일기, 메모, 가계부, 기록, 로또 자료를 한 곳에 모으는 개인블로그입니다.",
@@ -1134,16 +1276,24 @@ service cloud.firestore {
         .filter(Boolean)));
     }
 
+    function normalizeDeletedCards(list) {
+      return Array.from(new Set((Array.isArray(list) ? list : [])
+        .map((name) => String(name || "").trim())
+        .filter(Boolean)));
+    }
+
     function normalizeWholeState(source) {
       const baseState = structuredClone(defaultData);
       const raw = source || {};
       const lottoDraws = getLottoDrawsFromAnySource(raw);
       const deletedBanks = normalizeDeletedBanks(raw.deletedBanks);
+      const deletedCards = normalizeDeletedCards(raw.deletedCards);
       const isDeletedBank = (name) => deletedBanks.includes(String(name || "").trim());
+      const isDeletedCard = (name) => deletedCards.includes(String(name || "").trim());
       const bankNames = getBankNamesFrom(raw.banks).filter((bank) => !isDeletedBank(bank));
-      const cardNames = Array.isArray(raw.cards)
+      const cardNames = (Array.isArray(raw.cards)
         ? raw.cards.map((card) => String(card || "").trim()).filter(Boolean)
-        : [...defaultCards];
+        : [...defaultCards]).filter((card) => !isDeletedCard(card));
       const merged = {
         ...baseState,
         ...raw,
@@ -1160,7 +1310,8 @@ service cloud.firestore {
         cardSettings: getCardSettingsFrom(raw, cardNames),
         banks: bankNames,
         bankBalances: getBankBalancesFrom(raw, bankNames),
-        deletedBanks
+        deletedBanks,
+        deletedCards
       };
       if (!Array.isArray(merged.cards)) merged.cards = [...defaultCards];
       if (!Array.isArray(merged.banks)) merged.banks = [];
@@ -1627,6 +1778,7 @@ service cloud.firestore {
       });
       $("#cancelMemoEditBtn")?.addEventListener("click", resetMemoForm);
 
+      $("#ledgerType")?.addEventListener("change", updateLedgerCategoryOptions);
       $("#ledgerMethod")?.addEventListener("change", updateLedgerMethodState);
       $("#addCardBtn")?.addEventListener("click", addCardFromInput);
       $("#addBankBtn")?.addEventListener("click", addBankFromInput);
@@ -1635,6 +1787,9 @@ service cloud.firestore {
       $("#bankManageSelect")?.addEventListener("change", syncSelectedBankManager);
       $("#cardPaymentCard")?.addEventListener("change", syncCardPaymentBank);
       $("#cardUsageSelect")?.addEventListener("change", renderCardUsageDetails);
+      $("#ledgerTopCardUsageSelect")?.addEventListener("change", renderTopCardUsageDetails);
+      $("#ledgerDetailSelect")?.addEventListener("change", renderLedgerDetails);
+      $("#bankBalanceDetailSelect")?.addEventListener("change", renderBankBalanceDetails);
       $("#saveSelectedCardBtn")?.addEventListener("click", saveSelectedCardFromDropdown);
       $("#deleteSelectedCardBtn")?.addEventListener("click", deleteSelectedCardFromDropdown);
       $("#saveSelectedBankBtn")?.addEventListener("click", saveSelectedBankFromDropdown);
@@ -1776,17 +1931,20 @@ service cloud.firestore {
       if (!Array.isArray(state.cards)) state.cards = [];
       if (state.cards.includes(name)) return alert("이미 등록된 카드입니다.");
       if (state.cards.length >= 10) return alert("카드는 총 10개까지 등록할 수 있습니다.");
+      state.deletedCards = normalizeDeletedCards(state.deletedCards).filter((card) => card !== name);
       state.cards.push(name);
       ensureCardSettings();
       state.cardSettings[name] = getDefaultCardSetting(name);
       if (state.cardSettings[name].bankAccount) ensureLinkedBankAccount(state.cardSettings[name].bankAccount);
       input.value = "";
       saveLocalData();
-      const select = $("#cardManageSelect");
-      if (select) {
-        select.value = name;
-        syncSelectedCardManager();
-      }
+      ["#cardManageSelect", "#cardUsageSelect", "#ledgerTopCardUsageSelect"].forEach((selector) => {
+        const select = $(selector);
+        if (select && Array.from(select.options).some((option) => option.value === name)) select.value = name;
+      });
+      syncSelectedCardManager();
+      renderCardUsageDetails();
+      renderTopCardUsageDetails();
     }
 
     function addBankFromInput() {
@@ -1842,6 +2000,7 @@ service cloud.firestore {
         "- 기존 가계부 사용내역은 기록 보존을 위해 지우지 않습니다.",
         "- 삭제 후 같은 이름으로 다시 추가할 수 있습니다."
       ])) return;
+      state.deletedCards = normalizeDeletedCards([...(state.deletedCards || []), cleanName]);
       state.cards = Array.isArray(state.cards) ? state.cards.filter((card) => card !== cleanName) : [];
       if (state.cardSettings) delete state.cardSettings[cleanName];
       saveLocalData();
@@ -1923,6 +2082,7 @@ service cloud.firestore {
         type: normalizeCardType(typeSelect?.value || "credit"),
         bankAccount: String(bankSelect?.value || "").trim()
       };
+      state.deletedCards = normalizeDeletedCards(state.deletedCards).filter((card) => card !== newName);
       if (setting.bankAccount) ensureLinkedBankAccount(setting.bankAccount);
       state.cards = (state.cards || []).map((card) => card === oldName ? newName : card);
       state.cardSettings[newName] = setting;
@@ -1973,6 +2133,39 @@ service cloud.firestore {
       removeBank(select?.value || "");
     }
 
+    function uniqueTextList(values) {
+      return Array.from(new Set((Array.isArray(values) ? values : [])
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)));
+    }
+
+    function getIncomeCategoryNames() {
+      const fromLedger = (state.ledger || [])
+        .filter((item) => item && item.type === "income" && item.category)
+        .map((item) => item.category);
+      return uniqueTextList([...defaultIncomeCategories, ...fromLedger]);
+    }
+
+    function getExpenseCategoryNames() {
+      const fromLedger = (state.ledger || [])
+        .filter((item) => item && item.type === "expense" && item.category && !item.isCardPayment)
+        .map((item) => item.category);
+      return uniqueTextList([...defaultExpenseCategories, ...fromLedger]);
+    }
+
+    function getIncomeDetailOptions() {
+      return getLedgerDetailOptions();
+    }
+
+    function updateLedgerCategoryOptions() {
+      const select = $("#ledgerCategory");
+      if (!select) return;
+      const previous = select.value;
+      const type = $("#ledgerType")?.value || "expense";
+      const values = type === "income" ? getIncomeCategoryNames() : getExpenseCategoryNames();
+      fillSelect(select, values, values.includes(previous) ? previous : "");
+    }
+
     function fillSelect(select, values, previousValue) {
       if (!select) return "";
       const safeValues = Array.isArray(values) ? values.filter(Boolean) : [];
@@ -1994,6 +2187,9 @@ service cloud.firestore {
       const cardPaymentCardValue = $("#cardPaymentCard")?.value || "";
       const cardPaymentBankValue = $("#cardPaymentBank")?.value || "";
       const cardUsageValue = $("#cardUsageSelect")?.value || "";
+      const ledgerTopCardUsageValue = $("#ledgerTopCardUsageSelect")?.value || "";
+      const ledgerDetailValue = $("#ledgerDetailSelect")?.value || "";
+      const bankBalanceDetailValue = $("#bankBalanceDetailSelect")?.value || "";
 
       fillSelect($("#ledgerCard"), state.cards, ledgerCardValue);
       fillSelect($("#ledgerBank"), state.banks, ledgerBankValue);
@@ -2005,6 +2201,10 @@ service cloud.firestore {
       const selectedPaymentBank = selectedPaymentCard ? getCardSetting(selectedPaymentCard).bankAccount : cardPaymentBankValue;
       fillSelect($("#cardPaymentBank"), state.banks, selectedPaymentBank || cardPaymentBankValue);
       fillSelect($("#cardUsageSelect"), getAllCardNamesForUsage(), cardUsageValue);
+      fillSelect($("#ledgerTopCardUsageSelect"), getAllCardNamesForUsage(), ledgerTopCardUsageValue);
+      fillSelect($("#ledgerDetailSelect"), getLedgerDetailOptions(), ledgerDetailValue);
+      fillSelect($("#bankBalanceDetailSelect"), [ALL_BANK_OPTION, ...(state.banks || [])], bankBalanceDetailValue);
+      updateLedgerCategoryOptions();
 
       syncSelectedCardManager();
       syncSelectedBankManager();
@@ -2028,6 +2228,7 @@ function renderAll() {
       renderProfile();
       renderLotto();
       updateLedgerMethodState();
+      updateLedgerCategoryOptions();
     }
 
     function renderDiary() {
@@ -2095,40 +2296,59 @@ function renderAll() {
         <div class="summary-card">KB체크 사용<b>${formatMoney(totals.kbCheck)}</b></div>
         <div class="summary-card">카드대금 결제<b>${formatMoney(totals.cardPayment)}</b></div>`;
       renderCardUsageDetails();
-      list.innerHTML = state.ledger.length ? state.ledger.map((item) => {
+      renderTopCardUsageDetails();
+      renderLedgerDetails();
+      renderBankBalanceDetails();
+      if (!state.ledger.length) {
+        list.innerHTML = `<div class="empty">아직 저장된 가계부 내역이 없습니다.</div>`;
+        return;
+      }
+      const rows = state.ledger.map((item) => {
         const method = item.method === "transfer" ? "bank" : item.method;
-        let detail = "";
+        let accountText = "-";
+        let typeText = item.type === "income" ? "수입" : "지출";
+        let typeClass = item.type === "income" ? "ledger-kind-income" : "ledger-kind-expense";
         let methodText = methodLabel(method);
         if (item.isCardPayment) {
-          methodText = "카드대금 결제";
-          const bankBalanceText = item.bankAccount ? ` · 계좌잔액 ${formatMoney(state.bankBalances?.[item.bankAccount] || 0)}` : "";
-          detail = ` · ${escapeHtml(item.cardPaidFor || "카드")} · 출금계좌 ${escapeHtml(item.bankAccount || "")}${bankBalanceText}`;
+          typeText = "결제";
+          typeClass = "ledger-kind-payment";
+          methodText = "카드대금";
+          accountText = `${item.cardPaidFor || "카드"} / ${item.bankAccount || "출금계좌 없음"}`;
         } else if (method === "card" && item.card) {
           const setting = getCardSetting(item.card);
           const linked = item.linkedBankAccount || setting.bankAccount || "";
-          const effect = setting.type === "debit" ? "사용금액 기록 · 즉시출금" : "사용금액 기록 · 결제예정";
-          const bankBalanceText = setting.type === "debit" && linked ? ` · 계좌잔액 ${formatMoney(state.bankBalances?.[linked] || 0)}` : "";
-          detail = ` · ${escapeHtml(item.card)} · ${cardTypeLabel(setting.type)} · ${effect} ${escapeHtml(linked)}${bankBalanceText}`;
+          accountText = `${item.card}${linked ? " / " + linked : ""}`;
         } else if (method === "bank" && item.bankAccount) {
-          const bankBalanceText = ` · 계좌잔액 ${formatMoney(state.bankBalances?.[item.bankAccount] || 0)}`;
-          detail = ` · ${escapeHtml(item.bankAccount)}${bankBalanceText}`;
+          accountText = item.bankAccount;
         }
+        const descText = item.desc || "내용 없음";
         return `
-        <article class="list-item">
-          <div class="meta">${escapeHtml(item.date)} · ${item.isCardPayment ? "결제" : (item.type === "income" ? "수입" : "지출")} · ${methodText}${detail}</div>
-          <h3>${formatMoney(item.amount)} ${item.category ? "· " + escapeHtml(item.category) : ""}</h3>
-          <p>${escapeHtml(item.desc || "내용 없음")}</p>
-          <div class="actions"><button class="btn btn-small btn-secondary" type="button" data-edit="ledger" data-id="${item.id}">수정</button><button class="btn btn-small btn-danger" type="button" data-delete="ledger" data-id="${item.id}">삭제</button></div>
-        </article>`;
-      }).join("") : `<div class="empty">아직 저장된 가계부 내역이 없습니다.</div>`;
+          <div class="ledger-row">
+            <div class="ledger-date"><span class="cell-label">날짜</span>${escapeHtml(item.date || "")}</div>
+            <div><span class="cell-label">구분</span><span class="ledger-kind ${typeClass}">${escapeHtml(typeText)}</span></div>
+            <div><span class="cell-label">수단</span>${escapeHtml(methodText)}</div>
+            <div><span class="cell-label">카드/통장</span>${escapeHtml(accountText)}</div>
+            <div><span class="cell-label">분류</span>${escapeHtml(item.category || "분류 없음")}</div>
+            <div class="ledger-amount"><span class="cell-label">금액</span>${formatMoney(item.amount)}</div>
+            <div class="ledger-desc"><span class="cell-label">내용</span>${escapeHtml(descText)}</div>
+            <div class="row-actions"><button class="btn btn-small btn-secondary" type="button" data-edit="ledger" data-id="${item.id}">수정</button><button class="btn btn-small btn-danger" type="button" data-delete="ledger" data-id="${item.id}">삭제</button></div>
+          </div>`;
+      }).join("");
+      list.innerHTML = `
+        <div class="ledger-table-head">
+          <div>날짜</div><div>구분</div><div>수단</div><div>카드/통장</div><div>분류</div><div>금액</div><div>내용</div><div>작업</div>
+        </div>
+        ${rows}`;
     }
 
 
     function getAllCardNamesForUsage() {
-      const names = new Set(Array.isArray(state.cards) ? state.cards.filter(Boolean) : []);
+      const deletedCards = normalizeDeletedCards(state.deletedCards);
+      const isDeletedCard = (name) => deletedCards.includes(String(name || "").trim());
+      const names = new Set(Array.isArray(state.cards) ? state.cards.filter((card) => card && !isDeletedCard(card)) : []);
       (state.ledger || []).forEach((item) => {
-        if (item && item.card) names.add(item.card);
-        if (item && item.cardPaidFor) names.add(item.cardPaidFor);
+        if (item && item.card && !isDeletedCard(item.card)) names.add(item.card);
+        if (item && item.cardPaidFor && !isDeletedCard(item.cardPaidFor)) names.add(item.cardPaidFor);
       });
       return [...names].filter(Boolean);
     }
@@ -2146,6 +2366,182 @@ function renderAll() {
       const target = String(cardName || "").trim();
       if (!target) return [];
       return (state.ledger || []).filter((item) => item.isCardPayment && item.cardPaidFor === target);
+    }
+
+    function makeCardUsageStats(cardName) {
+      const setting = getCardSetting(cardName);
+      const usageItems = getCardLedgerUsageItems(cardName);
+      const paymentItems = getCardPaymentItems(cardName);
+      const expenseUsageTotal = usageItems.reduce((sum, item) => item.type === "expense" ? sum + toMoneyNumber(item.amount) : sum, 0);
+      const incomeUsageTotal = usageItems.reduce((sum, item) => item.type === "income" ? sum + toMoneyNumber(item.amount) : sum, 0);
+      const netUsageTotal = Math.max(expenseUsageTotal - incomeUsageTotal, 0);
+      const paymentTotal = paymentItems.reduce((sum, item) => sum + toMoneyNumber(item.amount), 0);
+      const expectedPayment = setting.type === "debit" ? 0 : Math.max(netUsageTotal - paymentTotal, 0);
+      return { setting, usageItems, paymentItems, expenseUsageTotal, incomeUsageTotal, netUsageTotal, paymentTotal, expectedPayment };
+    }
+
+    function renderTopCardUsageDetails() {
+      const select = $("#ledgerTopCardUsageSelect");
+      const summary = $("#ledgerTopCardUsageSummary");
+      const list = $("#ledgerTopCardUsageList");
+      if (!select || !summary || !list) return;
+      const cards = getAllCardNamesForUsage();
+      if (!cards.length) {
+        summary.innerHTML = "";
+        list.innerHTML = `<div class="empty">카드를 추가하면 이곳에서 카드별 사용금액을 확인할 수 있습니다.</div>`;
+        return;
+      }
+      if (!select.value || !cards.includes(select.value)) select.value = cards[0];
+      const cardName = select.value;
+      const stats = makeCardUsageStats(cardName);
+      const rows = [...stats.usageItems, ...stats.paymentItems]
+        .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")))
+        .slice(0, 5);
+      summary.innerHTML = `
+        <div class="summary-card">선택 카드<b>${escapeHtml(cardName)}</b></div>
+        <div class="summary-card">사용금액<b>${formatMoney(stats.netUsageTotal)}</b></div>
+        <div class="summary-card">결제금액<b>${formatMoney(stats.paymentTotal)}</b></div>
+        <div class="summary-card">결제예정<b>${formatMoney(stats.expectedPayment)}</b></div>`;
+      list.innerHTML = rows.length ? rows.map((item) => {
+        const isPayment = Boolean(item.isCardPayment);
+        const label = isPayment ? "카드대금 결제" : (item.type === "income" ? "수입/환불" : "카드 사용");
+        const desc = item.desc || (isPayment ? `${cardName} 카드대금 결제` : "내용 없음");
+        return `
+        <article class="list-item">
+          <div class="meta">${escapeHtml(item.date || "")} · ${escapeHtml(label)} · ${escapeHtml(item.category || "분류 없음")}</div>
+          <h3>${formatMoney(item.amount)}</h3>
+          <p>${escapeHtml(desc)}</p>
+        </article>`;
+      }).join("") : `<div class="empty">${escapeHtml(cardName)} 카드 사용내역이 아직 없습니다.</div>`;
+    }
+
+    function getLedgerDetailOptions() {
+      return [
+        ALL_LEDGER_OPTION,
+        ALL_INCOME_OPTION,
+        ALL_EXPENSE_OPTION,
+        CARD_PAYMENT_OPTION,
+        ...getIncomeCategoryNames().map((name) => `수입 · ${name}`),
+        ...getExpenseCategoryNames().map((name) => `지출 · ${name}`)
+      ];
+    }
+
+    function getLedgerItemsForDetail(option) {
+      const selected = String(option || ALL_LEDGER_OPTION).trim();
+      return (state.ledger || []).filter((item) => {
+        if (!item) return false;
+        if (selected === ALL_LEDGER_OPTION) return true;
+        if (selected === ALL_INCOME_OPTION) return item.type === "income";
+        if (selected === ALL_EXPENSE_OPTION) return item.type === "expense" && !item.isCardPayment;
+        if (selected === CARD_PAYMENT_OPTION) return Boolean(item.isCardPayment);
+        if (selected.startsWith("수입 · ")) return item.type === "income" && String(item.category || "").trim() === selected.replace("수입 · ", "").trim();
+        if (selected.startsWith("지출 · ")) return item.type === "expense" && !item.isCardPayment && String(item.category || "").trim() === selected.replace("지출 · ", "").trim();
+        return true;
+      });
+    }
+
+    function renderLedgerDetails() {
+      const select = $("#ledgerDetailSelect");
+      const summary = $("#ledgerDetailSummary");
+      const list = $("#ledgerDetailList");
+      if (!select || !summary || !list) return;
+      const options = getLedgerDetailOptions();
+      if (!select.value || !options.includes(select.value)) select.value = options[0];
+      const selected = select.value || ALL_LEDGER_OPTION;
+      const items = getLedgerItemsForDetail(selected).sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+      const incomeTotal = items.reduce((sum, item) => item.type === "income" ? sum + toMoneyNumber(item.amount) : sum, 0);
+      const expenseTotal = items.reduce((sum, item) => item.type === "expense" && !item.isCardPayment ? sum + toMoneyNumber(item.amount) : sum, 0);
+      const cardPaymentTotal = items.reduce((sum, item) => item.isCardPayment ? sum + toMoneyNumber(item.amount) : sum, 0);
+      const latestDate = items.length ? (items[0].date || "날짜 없음") : "내역 없음";
+      summary.innerHTML = `
+        <div class="summary-card">선택 항목<b>${escapeHtml(selected)}</b></div>
+        <div class="summary-card">수입합계<b>${formatMoney(incomeTotal)}</b></div>
+        <div class="summary-card">지출합계<b>${formatMoney(expenseTotal)}</b></div>
+        <div class="summary-card">차액<b>${formatMoney(incomeTotal - expenseTotal)}</b></div>
+        <div class="summary-card">카드대금결제<b>${formatMoney(cardPaymentTotal)}</b></div>
+        <div class="summary-card">내역건수<b>${items.length.toLocaleString("ko-KR")}건</b></div>`;
+      list.innerHTML = items.length ? items.slice(0, 8).map((item) => {
+        const method = item.method === "transfer" ? "bank" : item.method;
+        const label = item.isCardPayment ? "카드대금 결제" : (item.type === "income" ? "수입" : "지출");
+        const account = item.isCardPayment
+          ? `${item.cardPaidFor || "카드"} / ${item.bankAccount || ""}`
+          : method === "card" ? (item.card || "카드")
+          : method === "bank" ? (item.bankAccount || "은행계좌")
+          : methodLabel(method);
+        return `
+        <article class="list-item">
+          <div class="meta">${escapeHtml(item.date || "")} · ${escapeHtml(label)} · ${escapeHtml(methodLabel(method))} · ${escapeHtml(account)}</div>
+          <h3>${formatMoney(item.amount)} ${item.category ? "· " + escapeHtml(item.category) : ""}</h3>
+          <p>${escapeHtml(item.desc || "내용 없음")}</p>
+        </article>`;
+      }).join("") : `<div class="empty">선택한 항목의 내역이 아직 없습니다.</div>`;
+    }
+
+    function getBankLedgerMoveAmount(item, bankName) {
+      const bank = String(bankName || "").trim();
+      if (!item || !bank) return 0;
+      const amount = toMoneyNumber(item.amount || 0);
+      const method = item.method === "transfer" ? "bank" : item.method;
+      if (item.isCardPayment && String(item.bankAccount || "").trim() === bank) return -amount;
+      if (method === "bank" && String(item.bankAccount || "").trim() === bank) return item.type === "income" ? amount : -amount;
+      if (method === "card" && item.card) {
+        const setting = getCardSetting(item.card);
+        const linked = item.linkedBankAccount || setting.bankAccount || "";
+        if (setting.type === "debit" && String(linked || "").trim() === bank) return item.type === "income" ? amount : -amount;
+      }
+      return 0;
+    }
+
+    function renderBankBalanceDetails() {
+      const select = $("#bankBalanceDetailSelect");
+      const summary = $("#bankBalanceDetailSummary");
+      const list = $("#bankBalanceDetailList");
+      if (!select || !summary || !list) return;
+      ensureBankData();
+      const banks = state.banks || [];
+      const options = [ALL_BANK_OPTION, ...banks];
+      if (!select.value || !options.includes(select.value)) select.value = options[0];
+      const selected = select.value || ALL_BANK_OPTION;
+      const total = banks.reduce((sum, bank) => sum + toMoneyNumber(state.bankBalances?.[bank] || 0), 0);
+      if (!banks.length) {
+        summary.innerHTML = `<div class="summary-card">은행계좌<b>없음</b></div>`;
+        list.innerHTML = `<div class="empty">은행계좌를 추가하면 이곳에서 통장별 잔고를 확인할 수 있습니다.</div>`;
+        return;
+      }
+      if (selected === ALL_BANK_OPTION) {
+        const maxBank = banks.slice().sort((a, b) => toMoneyNumber(state.bankBalances?.[b] || 0) - toMoneyNumber(state.bankBalances?.[a] || 0))[0] || "";
+        summary.innerHTML = `
+          <div class="summary-card">전체 계좌<b>${banks.length.toLocaleString("ko-KR")}개</b></div>
+          <div class="summary-card">총잔고<b>${formatMoney(total)}</b></div>
+          <div class="summary-card">가장 큰 잔고<b>${escapeHtml(maxBank || "-")}</b></div>`;
+        list.innerHTML = `<div class="bank-balance-list">${banks.map((bank) => `
+          <div class="bank-balance-row"><strong>${escapeHtml(bank)}</strong><span>${formatMoney(state.bankBalances?.[bank] || 0)}</span></div>
+        `).join("")}</div>`;
+        return;
+      }
+      const related = (state.ledger || [])
+        .map((item) => ({ item, move: getBankLedgerMoveAmount(item, selected) }))
+        .filter((entry) => entry.move !== 0)
+        .sort((a, b) => String(b.item.date || "").localeCompare(String(a.item.date || "")));
+      const recentDate = related.length ? (related[0].item.date || "날짜 없음") : "내역 없음";
+      summary.innerHTML = `
+        <div class="summary-card">선택 통장<b>${escapeHtml(selected)}</b></div>
+        <div class="summary-card">현재 잔고<b>${formatMoney(state.bankBalances?.[selected] || 0)}</b></div>
+        <div class="summary-card">관련 내역<b>${related.length.toLocaleString("ko-KR")}건</b></div>
+        <div class="summary-card">최근일자<b>${escapeHtml(recentDate)}</b></div>`;
+      list.innerHTML = related.length ? related.slice(0, 8).map(({ item, move }) => {
+        const label = item.isCardPayment ? "카드대금 결제" : item.type === "income" ? "입금" : "출금";
+        return `
+        <article class="list-item">
+          <div class="meta">${escapeHtml(item.date || "")} · ${escapeHtml(label)} · ${escapeHtml(item.category || "분류 없음")}</div>
+          <h3>${move >= 0 ? "+" : "-"}${formatMoney(Math.abs(move))}</h3>
+          <p>${escapeHtml(item.desc || item.card || item.cardPaidFor || "내용 없음")}</p>
+        </article>`;
+      }).join("") : `<div class="empty">${escapeHtml(selected)} 통장과 연결된 입출금 내역이 아직 없습니다.</div>`;
+    }
+
+    function renderIncomeDetails() {
+      renderLedgerDetails();
     }
 
     function renderCardUsageDetails() {
@@ -2315,16 +2711,24 @@ function renderProfile() {
         $("#ledgerType").value = item.type || "expense";
         $("#ledgerAmount").value = item.amount || "";
         $("#ledgerMethod").value = item.method === "transfer" ? "bank" : (item.method || "cash");
-        if (item.card && !state.cards.includes(item.card)) state.cards.push(item.card);
+        if (item.card && !state.cards.includes(item.card) && !normalizeDeletedCards(state.deletedCards).includes(String(item.card || "").trim())) state.cards.push(item.card);
         ensureBankData();
         if (item.bankAccount && !normalizeDeletedBanks(state.deletedBanks).includes(String(item.bankAccount || "").trim()) && !state.banks.includes(item.bankAccount)) {
           state.banks.push(item.bankAccount);
           state.bankBalances[item.bankAccount] = 0;
         }
         renderLedgerManagers();
+        updateLedgerCategoryOptions();
         if ($("#ledgerCard")) $("#ledgerCard").value = item.card || state.cards[0] || "";
         if ($("#ledgerBank")) $("#ledgerBank").value = item.bankAccount || state.banks[0] || "";
-        if ($("#ledgerCategory")) $("#ledgerCategory").value = item.category || "기타";
+        if ($("#ledgerCategory")) {
+          const categorySelect = $("#ledgerCategory");
+          const categoryValue = item.category || (item.type === "income" ? "기타수입" : "기타");
+          if (!Array.from(categorySelect.options).some((option) => option.value === categoryValue)) {
+            categorySelect.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(categoryValue)}">${escapeHtml(categoryValue)}</option>`);
+          }
+          categorySelect.value = categoryValue;
+        }
         $("#ledgerDesc").value = item.desc || "";
         if ($("#ledgerSubmitBtn")) $("#ledgerSubmitBtn").textContent = "가계부 수정 저장";
         if ($("#cancelLedgerEditBtn")) $("#cancelLedgerEditBtn").style.display = "inline-flex";
@@ -2790,7 +3194,7 @@ function initLotto() {
   </script>
 <script id="lotto-section-loader">
     (function () {
-      var LOTTO_FRAME_SRC = "./lotto.html?v=53";
+      var LOTTO_FRAME_SRC = "./lotto.html?v=55";
 
       function getSafePostMessageOrigin() {
         return window.location.origin && window.location.origin !== "null" ? window.location.origin : "*";
@@ -2842,7 +3246,7 @@ function initLotto() {
         if (forceReload || !frame.getAttribute("src")) {
           frame.removeAttribute("srcdoc");
           frame.dataset.resizeBound = "";
-          frame.src = forceReload ? "./lotto.html?v=53&reload=" + Date.now() : LOTTO_FRAME_SRC;
+          frame.src = forceReload ? "./lotto.html?v=55&reload=" + Date.now() : LOTTO_FRAME_SRC;
         }
         frame.onload = function () {
           resizeLottoFrame();
@@ -2876,7 +3280,7 @@ function initLotto() {
       window.addEventListener("orientationchange", function () { setTimeout(resizeLottoFrame, 500); });
     })();
   </script>
-<!-- ver54 개인블로그_삭제팝업수정 · 최종 생성일자: 2026-05-15 21:28:18 KST -->
-  <!-- 최종 생성일자: 2026-05-15 21:28:18 KST -->
+<!-- ver56 개인블로그_가계부정리 · 최종 생성일자: 2026-05-16 00:06:17 KST -->
+  <!-- 최종 생성일자: 2026-05-16 00:06:17 KST -->
 </body>
 </html>

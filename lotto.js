@@ -1115,4 +1115,4 @@ ensureBulkRows(3);
 refreshUI();
 setTimeout(notifyParentLottoSync, 80);
 
-// ver54 개인블로그 삭제팝업수정 · 최종 생성일자: 2026-05-15 21:28:18 KST
+// ver56 개인블로그 가계부정리 · 최종 생성일자: 2026-05-16 00:06:17 KST
