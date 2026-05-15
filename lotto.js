@@ -1115,4 +1115,4 @@ ensureBulkRows(3);
 refreshUI();
 setTimeout(notifyParentLottoSync, 80);
 
-// ver53 개인블로그 QR계좌삭제확인 · 최종 생성일자: 2026-05-15 21:01:55 KST
+// ver54 개인블로그 삭제팝업수정 · 최종 생성일자: 2026-05-15 21:28:18 KST
