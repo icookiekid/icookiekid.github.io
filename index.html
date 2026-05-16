@@ -730,6 +730,204 @@
       .summary-cards .summary-card { min-height: 72px; }
     }
 
+
+
+    /* ver60: 가계부 전체 폭 사용 + 대시보드/사용내역 스크롤 정리 */
+    @media (min-width: 1024px) {
+      #page-ledger .wrap {
+        width: min(1760px, calc(100vw - 40px));
+        max-width: none;
+      }
+      #page-ledger .page-hero,
+      #page-ledger > .wrap {
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+    #page-ledger .summary-cards {
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 10px;
+    }
+    #page-ledger .summary-card {
+      padding: 12px 14px;
+      min-height: 74px;
+      border-radius: 17px;
+      font-size: 13px;
+    }
+    #page-ledger .summary-card b {
+      font-size: 18px;
+      line-height: 1.2;
+    }
+    .ledger-clean-dashboard {
+      overflow: hidden;
+    }
+    .ledger-dashboard-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) minmax(0, 1fr);
+      align-items: stretch;
+    }
+    .ledger-mini-card {
+      height: clamp(390px, 31vw, 470px);
+      min-height: 0;
+      overflow: hidden;
+    }
+    .ledger-mini-card .compact-help {
+      min-height: 0;
+      font-size: 12px;
+      line-height: 1.42;
+    }
+    .ledger-mini-card .card-usage-summary {
+      grid-template-columns: repeat(auto-fit, minmax(106px, 1fr));
+      gap: 7px;
+      flex: 0 0 auto;
+    }
+    .ledger-mini-card .card-usage-summary .summary-card {
+      min-width: 0;
+      min-height: 54px;
+      padding: 7px 9px;
+      font-size: 11.5px;
+      line-height: 1.22;
+    }
+    .ledger-mini-card .card-usage-summary .summary-card b {
+      font-size: 13.5px;
+      line-height: 1.18;
+      white-space: normal;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+    .ledger-mini-card .compact-list {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: none;
+      overflow: auto;
+      overscroll-behavior: contain;
+      padding-right: 5px;
+      scrollbar-width: thin;
+    }
+    .ledger-mini-card .compact-list .list-item,
+    .ledger-mini-card .compact-list .empty {
+      min-height: 0;
+      padding: 8px 9px;
+    }
+    .ledger-mini-card .compact-list .list-item .meta,
+    .ledger-mini-card .compact-list .list-item h3,
+    .ledger-mini-card .compact-list .list-item p {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+    .ledger-mini-card .compact-list .list-item .meta { font-size: 11px; }
+    .ledger-mini-card .compact-list .list-item h3 { font-size: 13px; }
+    .ledger-mini-card .compact-list .list-item p { font-size: 12px; }
+    .ledger-mini-card .bank-balance-list {
+      grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    }
+    .ledger-mini-card .bank-balance-row {
+      min-height: 34px;
+      padding: 7px 8px;
+    }
+    .ledger-mini-card .bank-balance-row strong,
+    .ledger-mini-card .bank-balance-row span {
+      font-size: 12.5px;
+    }
+
+    .ledger-list-panel {
+      width: 100%;
+      overflow: hidden;
+    }
+    .ledger-list-panel .compact-help {
+      font-size: 12.5px;
+      margin-bottom: 10px;
+    }
+    .ledger-list-panel .ledger-history-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      max-height: 760px;
+      overflow: auto;
+      overscroll-behavior: contain;
+      padding: 4px 8px 10px 0;
+      scrollbar-width: thin;
+    }
+    .ledger-list-panel .ledger-table-head { display: none !important; }
+    .ledger-list-panel .ledger-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 10px;
+      align-items: start;
+      margin: 0;
+      padding: 10px;
+      min-width: 0;
+      border-radius: 16px;
+    }
+    .ledger-list-panel .ledger-row > div {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      line-height: 1.28;
+      color: var(--text);
+    }
+    .ledger-list-panel .ledger-row .cell-label {
+      display: inline-flex;
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 900;
+    }
+    .ledger-list-panel .ledger-row .ledger-date {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .ledger-list-panel .ledger-row .ledger-kind {
+      min-height: 22px;
+      padding: 0 7px;
+      font-size: 11px;
+    }
+    .ledger-list-panel .ledger-row .ledger-amount {
+      font-size: 13.5px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .ledger-list-panel .ledger-row .ledger-desc {
+      grid-column: 1 / -1;
+      font-size: 12.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ledger-list-panel .ledger-row .row-actions {
+      grid-column: 1 / -1;
+      justify-content: flex-end;
+      gap: 5px;
+    }
+    .ledger-list-panel .ledger-row .row-actions .btn {
+      padding: 7px 10px;
+      min-height: 0;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+    @media (max-width: 1500px) {
+      .ledger-list-panel .ledger-history-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 1280px) and (min-width: 981px) {
+      #page-ledger .wrap { width: min(1280px, calc(100vw - 32px)); }
+      .ledger-dashboard-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .ledger-mini-card { height: 420px; }
+      .ledger-workspace-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 980px) {
+      #page-ledger .wrap { width: min(100% - 24px, 1160px); }
+      .ledger-dashboard-grid { grid-template-columns: 1fr; }
+      .ledger-mini-card { height: auto; max-height: none; }
+      .ledger-mini-card .compact-list { max-height: 320px; }
+      .ledger-list-panel .ledger-history-list { grid-template-columns: 1fr; max-height: 720px; }
+    }
+    @media (max-width: 620px) {
+      .ledger-list-panel .ledger-row { grid-template-columns: 1fr; }
+      .ledger-list-panel .ledger-row .ledger-desc { white-space: normal; }
+    }
+
     footer { padding: 42px 0 72px; text-align: center; color: var(--muted); font-size: 14px; }
 
     @media (max-width: 980px) {
@@ -964,7 +1162,7 @@
     }
 
   </style>
-  <!-- ver59 개인블로그_가계부높이정렬 · 최종 생성일자: 2026-05-17 01:34:39 KST -->
+  <!-- ver60 개인블로그_가계부넓게정리 · 최종 생성일자: 2026-05-17 01:53:08 KST -->
 </head>
 <body>
   <header>
@@ -1074,7 +1272,7 @@
           <div class="ledger-clean-head">
             <div>
               <h2>가계부 한눈에 보기</h2>
-              <p>카드 사용금액, 수입·지출 상세, 통장별 잔고를 한 줄 대시보드처럼 정리했습니다.</p>
+              <p>카드 사용금액, 수입·지출 상세, 통장별 잔고를 넓은 화면에 맞춰 정리했습니다.</p>
             </div>
           </div>
           <div class="ledger-dashboard-grid">
@@ -1215,7 +1413,7 @@
             </div>
           </div>
         </div>
-        <div class="panel ledger-list-panel"><h2>가계부 사용내역</h2><p class="compact-help">날짜, 구분, 수단, 카드/통장, 분류, 금액, 내용을 가로형 표 형태로 정리했습니다. PC에서는 한 줄씩 보기 좋게 보이고, 모바일에서는 항목별로 자동 정리됩니다.</p><div id="ledgerList" class="ledger-history-list"></div></div>
+        <div class="panel ledger-list-panel"><h2>가계부 사용내역</h2><p class="compact-help">PC에서는 내역 카드가 한 줄에 2~3개씩 보이고, 내역이 많으면 이 영역 안에서 드래그/스크롤해서 확인합니다.</p><div id="ledgerList" class="ledger-history-list"></div></div>
       </section>
     </section>
 
@@ -1277,7 +1475,7 @@
 
       <section class="wrap">
         <div class="lotto-frame-wrap">
-          <iframe id="lottoFrame" class="lotto-frame" title="로또 당첨 확인 웹페이지" src="./lotto.html?v=59" loading="lazy" scrolling="no" allow="camera"></iframe>
+          <iframe id="lottoFrame" class="lotto-frame" title="로또 당첨 확인 웹페이지" src="./lotto.html?v=60" loading="lazy" scrolling="no" allow="camera"></iframe>
         </div>
       </section>
     </section>
@@ -3480,7 +3678,7 @@ function initLotto() {
   </script>
 <script id="lotto-section-loader">
     (function () {
-      var LOTTO_FRAME_SRC = "./lotto.html?v=59";
+      var LOTTO_FRAME_SRC = "./lotto.html?v=60";
 
       function getSafePostMessageOrigin() {
         return window.location.origin && window.location.origin !== "null" ? window.location.origin : "*";
@@ -3532,7 +3730,7 @@ function initLotto() {
         if (forceReload || !frame.getAttribute("src")) {
           frame.removeAttribute("srcdoc");
           frame.dataset.resizeBound = "";
-          frame.src = forceReload ? "./lotto.html?v=59&reload=" + Date.now() : LOTTO_FRAME_SRC;
+          frame.src = forceReload ? "./lotto.html?v=60&reload=" + Date.now() : LOTTO_FRAME_SRC;
         }
         frame.onload = function () {
           resizeLottoFrame();
@@ -3566,7 +3764,7 @@ function initLotto() {
       window.addEventListener("orientationchange", function () { setTimeout(resizeLottoFrame, 500); });
     })();
   </script>
-<!-- ver59 개인블로그_가계부높이정렬 · 최종 생성일자: 2026-05-17 01:34:39 KST -->
-<!-- 최종 생성일자: 2026-05-17 01:34:39 KST -->
+<!-- ver60 개인블로그_가계부넓게정리 · 최종 생성일자: 2026-05-17 01:53:08 KST -->
+<!-- 최종 생성일자: 2026-05-17 01:53:08 KST -->
 </body>
 </html>
