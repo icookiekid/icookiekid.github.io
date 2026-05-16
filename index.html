@@ -1606,6 +1606,36 @@
       font-size: 10px;
       line-height: 1;
     }
+
+    /* ver63: 내역 입력 패널과 카드·은행계좌 관리 패널 높이 일치 */
+    @media (min-width: 1281px) {
+      #page-ledger .ledger-workspace-grid {
+        align-items: stretch;
+        grid-auto-rows: 1fr;
+      }
+      #page-ledger .ledger-input-panel,
+      #page-ledger .ledger-manage-panel {
+        height: 100%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      #page-ledger .ledger-manage-panel .ledger-manager-row {
+        flex: 1;
+        align-items: stretch;
+      }
+      #page-ledger .ledger-manage-panel .manager-box {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      #page-ledger .ledger-manage-panel .manager-current {
+        margin-top: auto;
+      }
+      #page-ledger .ledger-input-panel .card-payment-box {
+        margin-top: 8px;
+      }
+    }
     @media (min-width: 1800px) {
       #page-ledger .ledger-list-panel .ledger-history-list {
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1653,8 +1683,189 @@
       }
     }
 
+
+    /* ver64: 가계부 높이 재일치 + 사용내역 4~5칸 읽기형 정리 */
+    @media (min-width: 1024px) {
+      #page-ledger .wrap {
+        width: min(2380px, calc(100vw - 28px));
+        max-width: none;
+      }
+
+      #page-ledger .ledger-workspace-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        align-items: stretch !important;
+        grid-auto-rows: 1fr !important;
+        gap: 10px !important;
+      }
+
+      #page-ledger .ledger-input-panel,
+      #page-ledger .ledger-manage-panel {
+        height: 100% !important;
+        min-height: 0;
+        box-sizing: border-box;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+
+      #page-ledger .ledger-manage-panel .ledger-manager-row {
+        flex: 1 1 auto;
+        align-items: stretch !important;
+        min-height: 0;
+      }
+
+      #page-ledger .ledger-manage-panel .manager-box {
+        height: 100% !important;
+        min-height: 0;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+
+      #page-ledger .ledger-manage-panel .manager-current {
+        margin-top: auto;
+      }
+
+      #page-ledger .ledger-list-panel {
+        padding: 16px !important;
+        margin-top: 10px !important;
+      }
+
+      #page-ledger .ledger-list-panel .compact-help {
+        font-size: 12px !important;
+        line-height: 1.35 !important;
+        margin: 0 0 8px !important;
+      }
+
+      #page-ledger .ledger-list-panel .ledger-history-list {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(390px, 1fr)) !important;
+        gap: 10px !important;
+        max-height: 760px !important;
+        overflow: auto !important;
+        padding: 2px 6px 8px 0 !important;
+      }
+
+      #page-ledger .ledger-list-panel .ledger-row {
+        position: relative;
+        display: grid !important;
+        grid-template-columns: minmax(82px, .78fr) minmax(58px, .55fr) minmax(108px, 1fr) 62px !important;
+        grid-template-areas:
+          "date kind amount actions"
+          "method cat account actions"
+          "desc desc desc actions" !important;
+        gap: 6px 8px !important;
+        align-items: start !important;
+        min-height: 112px !important;
+        max-height: none !important;
+        padding: 11px 10px !important;
+        border-radius: 14px !important;
+        overflow: hidden !important;
+      }
+
+      #page-ledger .ledger-list-panel .ledger-row > div {
+        min-width: 0;
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        font-size: 12px !important;
+        line-height: 1.25 !important;
+      }
+
+      #page-ledger .ledger-list-panel .ledger-row .cell-label {
+        display: inline-flex !important;
+        flex: 0 0 auto;
+        color: var(--muted);
+        font-size: 9.8px !important;
+        font-weight: 900;
+      }
+
+      #page-ledger .ledger-list-panel .ledger-row .ledger-date {
+        grid-area: date;
+        font-size: 12px !important;
+        font-weight: 900;
+        color: var(--muted);
+      }
+
+      #page-ledger .ledger-list-panel .ledger-row > div:nth-child(2) { grid-area: kind; }
+      #page-ledger .ledger-list-panel .ledger-row > div:nth-child(3) { grid-area: method; }
+      #page-ledger .ledger-list-panel .ledger-row > div:nth-child(4) { grid-area: account; }
+      #page-ledger .ledger-list-panel .ledger-row > div:nth-child(5) { grid-area: cat; }
+
+      #page-ledger .ledger-list-panel .ledger-row .ledger-kind {
+        min-height: 21px !important;
+        padding: 0 7px !important;
+        font-size: 10.5px !important;
+      }
+
+      #page-ledger .ledger-list-panel .ledger-row .ledger-amount {
+        grid-area: amount;
+        justify-content: flex-start;
+        font-size: 14px !important;
+        font-weight: 950;
+        white-space: nowrap;
+        text-align: left;
+      }
+
+      #page-ledger .ledger-list-panel .ledger-row .ledger-desc {
+        grid-area: desc;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        min-height: 34px !important;
+        padding-top: 1px !important;
+        font-size: 12.2px !important;
+        line-height: 1.35 !important;
+        white-space: normal !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis;
+      }
+
+      #page-ledger .ledger-list-panel .ledger-row .row-actions {
+        grid-area: actions;
+        align-self: start !important;
+        justify-self: end !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+        gap: 5px !important;
+        margin: 0 !important;
+      }
+
+      #page-ledger .ledger-list-panel .ledger-row .row-actions .btn {
+        min-height: 27px !important;
+        padding: 5px 7px !important;
+        border-radius: 9px !important;
+        font-size: 11px !important;
+        line-height: 1 !important;
+        box-shadow: none !important;
+      }
+    }
+
+    @media (min-width: 1700px) {
+      #page-ledger .ledger-list-panel .ledger-history-list {
+        grid-template-columns: repeat(auto-fit, minmax(410px, 1fr)) !important;
+      }
+    }
+
+    @media (min-width: 2200px) {
+      #page-ledger .ledger-list-panel .ledger-history-list {
+        grid-template-columns: repeat(auto-fit, minmax(430px, 1fr)) !important;
+      }
+    }
+
+    @media (max-width: 1280px) and (min-width: 1024px) {
+      #page-ledger .ledger-workspace-grid {
+        grid-template-columns: 1fr !important;
+      }
+      #page-ledger .ledger-input-panel,
+      #page-ledger .ledger-manage-panel {
+        min-height: 0 !important;
+      }
+    }
+
+
   </style>
-  <!-- ver62 개인블로그_가계부공간압축 · 최종 생성일자: 2026-05-17 02:12:12 KST -->
+  <!-- ver64 개인블로그_사용내역읽기정리 · 최종 생성일자: 2026-05-17 02:26:14 KST -->
 </head>
 <body>
   <header>
@@ -1905,7 +2116,7 @@
             </div>
           </div>
         </div>
-        <div class="panel ledger-list-panel"><h2>가계부 사용내역</h2><p class="compact-help">PC에서는 내역 카드가 한 줄에 2~3개씩 보이고, 내역이 많으면 이 영역 안에서 드래그/스크롤해서 확인합니다.</p><div id="ledgerList" class="ledger-history-list"></div></div>
+        <div class="panel ledger-list-panel"><h2>가계부 사용내역</h2><p class="compact-help">PC에서는 내역 카드가 한 줄에 4~5개까지 보이되, 읽을 수 있도록 글자와 줄 간격을 다시 정리했습니다. 내역이 많으면 이 영역 안에서 드래그/스크롤해서 확인합니다.</p><div id="ledgerList" class="ledger-history-list"></div></div>
       </section>
     </section>
 
@@ -1967,7 +2178,7 @@
 
       <section class="wrap">
         <div class="lotto-frame-wrap">
-          <iframe id="lottoFrame" class="lotto-frame" title="로또 당첨 확인 웹페이지" src="./lotto.html?v=62" loading="lazy" scrolling="no" allow="camera"></iframe>
+          <iframe id="lottoFrame" class="lotto-frame" title="로또 당첨 확인 웹페이지" src="./lotto.html?v=64" loading="lazy" scrolling="no" allow="camera"></iframe>
         </div>
       </section>
     </section>
@@ -4170,7 +4381,7 @@ function initLotto() {
   </script>
 <script id="lotto-section-loader">
     (function () {
-      var LOTTO_FRAME_SRC = "./lotto.html?v=62";
+      var LOTTO_FRAME_SRC = "./lotto.html?v=64";
 
       function getSafePostMessageOrigin() {
         return window.location.origin && window.location.origin !== "null" ? window.location.origin : "*";
@@ -4222,7 +4433,7 @@ function initLotto() {
         if (forceReload || !frame.getAttribute("src")) {
           frame.removeAttribute("srcdoc");
           frame.dataset.resizeBound = "";
-          frame.src = forceReload ? "./lotto.html?v=62&reload=" + Date.now() : LOTTO_FRAME_SRC;
+          frame.src = forceReload ? "./lotto.html?v=64&reload=" + Date.now() : LOTTO_FRAME_SRC;
         }
         frame.onload = function () {
           resizeLottoFrame();
@@ -4256,7 +4467,51 @@ function initLotto() {
       window.addEventListener("orientationchange", function () { setTimeout(resizeLottoFrame, 500); });
     })();
   </script>
-<!-- ver62 개인블로그_가계부공간압축 · 최종 생성일자: 2026-05-17 02:12:12 KST -->
-<!-- 최종 생성일자: 2026-05-17 02:12:12 KST -->
+
+  <script>
+    /* ver64: PC에서 내역 입력/카드·은행계좌 관리 패널 실제 높이 보정 */
+    (function () {
+      var timer = null;
+      function equalizeLedgerWorkspaceHeights() {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          var inputPanel = document.querySelector('#page-ledger .ledger-input-panel');
+          var managePanel = document.querySelector('#page-ledger .ledger-manage-panel');
+          if (!inputPanel || !managePanel) return;
+          inputPanel.style.minHeight = '';
+          managePanel.style.minHeight = '';
+          if (window.innerWidth < 1281) return;
+          var maxHeight = Math.max(inputPanel.offsetHeight || 0, managePanel.offsetHeight || 0);
+          if (maxHeight > 0) {
+            inputPanel.style.minHeight = maxHeight + 'px';
+            managePanel.style.minHeight = maxHeight + 'px';
+          }
+        }, 80);
+      }
+      window.equalizeLedgerWorkspaceHeights = equalizeLedgerWorkspaceHeights;
+      window.addEventListener('load', equalizeLedgerWorkspaceHeights);
+      window.addEventListener('resize', equalizeLedgerWorkspaceHeights);
+      document.addEventListener('click', function (event) {
+        if (event.target && event.target.closest && event.target.closest('#page-ledger')) {
+          equalizeLedgerWorkspaceHeights();
+          setTimeout(equalizeLedgerWorkspaceHeights, 250);
+        }
+      });
+      document.addEventListener('input', function (event) {
+        if (event.target && event.target.closest && event.target.closest('#page-ledger')) equalizeLedgerWorkspaceHeights();
+      });
+      document.addEventListener('DOMContentLoaded', function () {
+        equalizeLedgerWorkspaceHeights();
+        var ledgerPage = document.getElementById('page-ledger');
+        if (ledgerPage && window.MutationObserver) {
+          new MutationObserver(equalizeLedgerWorkspaceHeights).observe(ledgerPage, { childList: true, subtree: true });
+        }
+        setTimeout(equalizeLedgerWorkspaceHeights, 500);
+        setTimeout(equalizeLedgerWorkspaceHeights, 1500);
+      });
+    })();
+  </script>
+<!-- ver64 개인블로그_사용내역읽기정리 · 최종 생성일자: 2026-05-17 02:26:14 KST -->
+<!-- 최종 생성일자: 2026-05-17 02:26:14 KST -->
 </body>
 </html>
