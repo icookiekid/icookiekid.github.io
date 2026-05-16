@@ -454,6 +454,116 @@
     .ledger-kind-income { background: rgba(88,114,70,.13); color: var(--green); }
     .ledger-kind-expense { background: rgba(139,63,54,.11); color: var(--red); }
     .ledger-kind-payment { background: rgba(63,95,115,.12); color: var(--blue); }
+
+    /* ver57: 가계부 화면을 위에서 아래로 길게 늘어지지 않게, 대시보드형으로 정리 */
+    .ledger-clean-dashboard {
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .ledger-clean-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+    .ledger-clean-head h2 { margin: 0; font-size: 25px; }
+    .ledger-clean-head p { margin: 5px 0 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .ledger-dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+    .ledger-mini-card {
+      min-width: 0;
+      padding: 16px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255,253,248,.67);
+      box-shadow: 0 10px 28px rgba(77, 51, 32, 0.06);
+    }
+    .ledger-mini-card h3 {
+      margin: 0 0 8px;
+      font-size: 19px;
+      letter-spacing: -0.04em;
+    }
+    .ledger-mini-card .compact-help { margin: 0 0 10px; font-size: 13px; line-height: 1.55; }
+    .ledger-mini-card .ledger-detail-tools { margin: 0 0 10px; }
+    .ledger-mini-card .card-usage-summary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .ledger-mini-card .card-usage-summary .summary-card {
+      padding: 10px 11px;
+      border-radius: 14px;
+    }
+    .ledger-mini-card .card-usage-summary .summary-card b { font-size: 16px; }
+    .ledger-mini-card .compact-list { display: grid; gap: 7px; margin-top: 8px; }
+    .ledger-mini-card .compact-list .list-item,
+    .ledger-mini-card .compact-list .empty { padding: 11px; border-radius: 14px; }
+    .ledger-mini-card .compact-list .list-item h3 { font-size: 15px; }
+
+    .ledger-workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(430px, 1.08fr) minmax(430px, .92fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .ledger-input-panel,
+    .ledger-manage-panel,
+    .ledger-list-panel { padding: 22px; }
+    .ledger-input-panel h2,
+    .ledger-manage-panel h2,
+    .ledger-list-panel h2 { font-size: 25px; margin-bottom: 10px; }
+    .ledger-entry-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .ledger-entry-grid .wide-2 { grid-column: span 2; }
+    .ledger-entry-grid .wide-4 { grid-column: 1 / -1; }
+    .ledger-entry-grid input,
+    .ledger-entry-grid select { min-height: 44px; }
+    .ledger-card-effect-info,
+    .category-code-help {
+      margin: 8px 0 0;
+      padding: 10px 12px;
+      border-radius: 15px;
+      background: rgba(138,90,59,.07);
+      color: var(--brown-dark);
+      font-size: 13px;
+      line-height: 1.55;
+      font-weight: 800;
+    }
+    .ledger-card-effect-info strong { color: var(--red); }
+    .ledger-manager-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+    .ledger-manager-row .manager-box { margin: 0; }
+    .ledger-manager-row .manager-grid { grid-template-columns: 1fr; }
+    .ledger-manager-row .card-link-grid { grid-template-columns: 1fr; }
+    .card-payment-box { margin-top: 14px; }
+    .card-payment-box .form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card-payment-box .form-grid .full { grid-column: 1 / -1; }
+    .ledger-list-panel { margin-top: 16px; }
+
+    @media (max-width: 1280px) {
+      .ledger-dashboard-grid,
+      .ledger-workspace-grid { grid-template-columns: 1fr; }
+      .ledger-manager-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 980px) {
+      .ledger-clean-head { display: block; }
+      .ledger-manager-row,
+      .ledger-entry-grid,
+      .card-payment-box .form-grid { grid-template-columns: 1fr; }
+      .ledger-entry-grid .wide-2,
+      .ledger-entry-grid .wide-4 { grid-column: 1 / -1; }
+    }
     @media (max-width: 1120px) {
       .ledger-overview-grid { grid-template-columns: 1fr; }
     }
@@ -714,7 +824,7 @@
     }
 
   </style>
-  <!-- ver56 개인블로그_가계부정리 · 최종 생성일자: 2026-05-16 00:06:17 KST -->
+  <!-- ver57 개인블로그_가계부가로정리 · 최종 생성일자: 2026-05-17 01:02:23 KST
 </head>
 <body>
   <header>
@@ -819,125 +929,72 @@
       </div>
       <section class="wrap">
         <div id="ledgerSummary" class="summary-cards"></div>
-        <div class="grid-3 ledger-overview-grid ledger-top-details">
-          <div class="panel overview-panel">
-            <h2>카드별 사용금액</h2>
-            <p class="compact-help">카드를 추가하면 이 드롭다운에도 자동으로 나타납니다. 카드별 사용금액, 결제금액, 결제예정 금액을 한눈에 확인합니다.</p>
-            <div class="ledger-detail-tools">
-              <label for="ledgerTopCardUsageSelect">확인할 카드 선택
-                <select id="ledgerTopCardUsageSelect"></select>
-              </label>
+
+        <div class="panel ledger-clean-dashboard">
+          <div class="ledger-clean-head">
+            <div>
+              <h2>가계부 한눈에 보기</h2>
+              <p>카드 사용금액, 수입·지출 상세, 통장별 잔고를 한 줄 대시보드처럼 정리했습니다.</p>
             </div>
-            <div id="ledgerTopCardUsageSummary" class="card-usage-summary"></div>
-            <div id="ledgerTopCardUsageList" class="list compact-list"></div>
           </div>
-          <div class="panel overview-panel">
-            <h2>수입·지출 상세 확인</h2>
-            <p class="compact-help">전체 내역, 전체 수입, 전체 지출, 수입 종류별, 지출 종류별 내역을 드롭다운으로 골라 확인합니다.</p>
-            <div class="ledger-detail-tools">
-              <label for="ledgerDetailSelect">확인할 항목 선택
-                <select id="ledgerDetailSelect"></select>
-              </label>
-            </div>
-            <div id="ledgerDetailSummary" class="card-usage-summary"></div>
-            <div id="ledgerDetailList" class="list compact-list"></div>
-          </div>
-          <div class="panel overview-panel">
-            <h2>통장별 잔고</h2>
-            <p class="compact-help">전체 계좌 잔액과 선택한 통장의 현재 잔고, 최근 입출금 내역을 함께 확인합니다.</p>
-            <div class="ledger-detail-tools">
-              <label for="bankBalanceDetailSelect">확인할 통장 선택
-                <select id="bankBalanceDetailSelect"></select>
-              </label>
-            </div>
-            <div id="bankBalanceDetailSummary" class="card-usage-summary"></div>
-            <div id="bankBalanceDetailList" class="list compact-list"></div>
+          <div class="ledger-dashboard-grid">
+            <section class="ledger-mini-card">
+              <h3>카드별 사용금액</h3>
+              <p class="compact-help">카드를 추가하면 자동으로 목록에 들어옵니다.</p>
+              <div class="ledger-detail-tools">
+                <label for="ledgerTopCardUsageSelect">확인할 카드 선택
+                  <select id="ledgerTopCardUsageSelect"></select>
+                </label>
+              </div>
+              <div id="ledgerTopCardUsageSummary" class="card-usage-summary"></div>
+              <div id="ledgerTopCardUsageList" class="list compact-list"></div>
+            </section>
+            <section class="ledger-mini-card">
+              <h3>수입·지출 상세</h3>
+              <p class="compact-help">전체 내역, 수입, 지출, 분류별 내역을 골라 볼 수 있습니다.</p>
+              <div class="ledger-detail-tools">
+                <label for="ledgerDetailSelect">확인할 항목 선택
+                  <select id="ledgerDetailSelect"></select>
+                </label>
+              </div>
+              <div id="ledgerDetailSummary" class="card-usage-summary"></div>
+              <div id="ledgerDetailList" class="list compact-list"></div>
+            </section>
+            <section class="ledger-mini-card">
+              <h3>통장별 잔고</h3>
+              <p class="compact-help">전체 계좌와 선택 통장의 잔고, 최근 입출금 내역을 확인합니다.</p>
+              <div class="ledger-detail-tools">
+                <label for="bankBalanceDetailSelect">확인할 통장 선택
+                  <select id="bankBalanceDetailSelect"></select>
+                </label>
+              </div>
+              <div id="bankBalanceDetailSummary" class="card-usage-summary"></div>
+              <div id="bankBalanceDetailList" class="list compact-list"></div>
+            </section>
           </div>
         </div>
-        <div class="grid-2">
-          <div class="panel">
-            <h2>카드·은행계좌 관리</h2>
-            <p class="compact-help">카드와 은행계좌를 한꺼번에 길게 보여주지 않고, 드롭다운에서 하나씩 선택해서 수정하도록 정리했습니다.</p>
 
-            <div class="manager-box compact-manager">
-              <div class="manager-title">카드 관리</div>
-              <div class="manager-section">
-                <label class="manager-label" for="cardManageSelect">수정할 카드 선택</label>
-                <select id="cardManageSelect"></select>
-              </div>
-              <div class="manager-grid card-link-grid">
-                <label>카드 이름 수정
-                  <input id="cardEditName" type="text" placeholder="예: KB가온 생활비카드" />
-                </label>
-                <label>카드 종류
-                  <select id="cardEditType">
-                    <option value="credit">신용카드 · 결제일에 계좌 차감</option>
-                    <option value="debit">체크카드 · 사용 즉시 계좌 차감</option>
-                  </select>
-                </label>
-                <label>결제/출금 계좌
-                  <select id="cardEditBank"></select>
-                </label>
-              </div>
-              <div class="manager-actions">
-                <button class="btn btn-small btn-secondary" type="button" id="saveSelectedCardBtn">카드 정보 저장</button>
-                <button class="btn btn-small btn-danger" type="button" id="deleteSelectedCardBtn">선택 카드 삭제</button>
-              </div>
-              <p class="manager-current" id="cardSelectedInfo">카드를 선택하면 이름, 카드 종류, 결제/출금 계좌를 수정할 수 있습니다.</p>
-              <details class="compact-add-box">
-                <summary>새 카드 추가 열기</summary>
-                <div class="inline-tools compact-add-tools">
-                  <input id="newCardName" type="text" placeholder="예: KB가온, KB쿠팡, 삼성카드" />
-                  <button class="btn btn-small btn-primary" type="button" id="addCardBtn">카드 추가</button>
-                </div>
-              </details>
-            </div>
-
-            <div class="manager-box compact-manager">
-              <div class="manager-title">은행계좌 관리</div>
-              <div class="manager-section">
-                <label class="manager-label" for="bankManageSelect">수정할 은행계좌 선택</label>
-                <select id="bankManageSelect"></select>
-              </div>
-              <div class="manager-grid">
-                <label>은행계좌 이름 수정
-                  <input id="bankEditName" type="text" placeholder="예: 국민은행 생활비" />
-                </label>
-                <label>현재 잔액 수정(원)
-                  <input id="bankEditBalance" type="number" step="1" placeholder="예: 1000000" />
-                </label>
-              </div>
-              <div class="manager-actions">
-                <button class="btn btn-small btn-primary" type="button" id="saveSelectedBankBtn">계좌 정보 저장</button>
-                <button class="btn btn-small btn-danger" type="button" id="deleteSelectedBankBtn">선택 계좌 삭제</button>
-              </div>
-              <p class="manager-current" id="bankSelectedInfo">계좌를 선택하면 이름과 잔액을 수정할 수 있습니다.</p>
-              <details class="compact-add-box">
-                <summary>새 은행계좌 추가 열기</summary>
-                <div class="inline-tools bank-add-tools compact-add-tools">
-                  <input id="newBankName" type="text" placeholder="예: 국민은행 생활비, 카카오뱅크" />
-                  <input id="newBankBalance" type="number" step="1" placeholder="현재 잔액(원)" />
-                  <button class="btn btn-small btn-primary" type="button" id="addBankBtn">계좌 추가</button>
-                </div>
-              </details>
-            </div>
-
-            <h2 style="margin-top:24px;">내역 입력</h2>
-            <form id="ledgerForm" class="form-grid">
+        <div class="ledger-workspace-grid">
+          <div class="panel ledger-input-panel">
+            <h2>내역 입력</h2>
+            <p class="compact-help">체크카드는 카드 종류가 <b>체크카드</b>로 설정되어 있으면 저장 즉시 연결계좌 잔액에서 차감되고, 카드별 사용금액에도 같이 남습니다.</p>
+            <form id="ledgerForm" class="form-grid ledger-entry-grid">
               <div><label for="ledgerDate">날짜</label><input id="ledgerDate" type="date" required /></div>
               <div><label for="ledgerType">구분</label><select id="ledgerType"><option value="income">수입</option><option value="expense">지출</option></select></div>
               <div><label for="ledgerAmount">금액</label><input id="ledgerAmount" type="number" min="0" step="1" placeholder="예: 12000" required /></div>
               <div><label for="ledgerMethod">수단</label><select id="ledgerMethod"><option value="cash">현금</option><option value="card">카드</option><option value="bank">은행계좌</option></select></div>
               <div><label for="ledgerCard">카드명</label><select id="ledgerCard" disabled></select></div>
               <div><label for="ledgerBank">은행계좌</label><select id="ledgerBank" disabled></select></div>
-              <div><label for="ledgerCategory">분류</label><select id="ledgerCategory"><option>월급</option><option>부수입</option><option>상여금</option><option>보너스</option><option>이자수입</option><option>배당금</option><option>환급</option><option>중고판매</option><option>용돈</option><option>지원금</option><option>기타수입</option></select></div>
-              <div class="full"><label for="ledgerDesc">내용</label><input id="ledgerDesc" type="text" placeholder="예: 점심 식사, 월급, 카드 결제" /></div>
-              <div class="full actions"><button class="btn btn-primary" type="submit" id="ledgerSubmitBtn">가계부 저장</button><button class="btn btn-outline" type="button" id="cancelLedgerEditBtn" style="display:none;">수정 취소</button></div>
+              <div class="wide-2"><label for="ledgerCategory">분류</label><select id="ledgerCategory"><option>월급</option><option>부수입</option><option>상여금</option><option>보너스</option><option>이자수입</option><option>배당금</option><option>환급</option><option>중고판매</option><option>용돈</option><option>지원금</option><option>기타수입</option></select></div>
+              <div class="wide-4"><p id="ledgerCardEffectInfo" class="ledger-card-effect-info">수단에서 카드를 선택하면 카드별 차감 방식이 여기에 표시됩니다.</p></div>
+              <div class="wide-4"><label for="ledgerDesc">내용</label><input id="ledgerDesc" type="text" placeholder="예: 점심 식사, 월급, 카드 결제" /></div>
+              <div class="wide-4"><p class="category-code-help">분류 목록을 직접 바꾸려면 index.html에서 <b>defaultIncomeCategories</b>와 <b>defaultExpenseCategories</b> 배열을 수정하시면 됩니다.</p></div>
+              <div class="wide-4 actions"><button class="btn btn-primary" type="submit" id="ledgerSubmitBtn">가계부 저장</button><button class="btn btn-outline" type="button" id="cancelLedgerEditBtn" style="display:none;">수정 취소</button></div>
             </form>
 
             <div class="manager-box compact-manager card-payment-box">
               <div class="manager-title">카드대금 결제</div>
-              <p class="compact-help">KB가온·KB쿠팡·KB쿠쿠는 사용금액은 카드 사용으로 따로 기록하고, 실제 카드대금이 빠지는 날 아래에서 결제하면 kb654 계좌 잔액에서 차감됩니다. KB체크는 체크카드라서 사용 즉시 kb8424 계좌에서 차감되고, 동시에 KB체크 사용금액으로 별도 기록됩니다.</p>
+              <p class="compact-help">신용카드는 사용금액만 먼저 기록되고, 카드대금 결제 저장 시 연결계좌에서 차감됩니다. 체크카드는 일반 내역 입력에서 사용 즉시 연결계좌에서 차감됩니다.</p>
               <form id="cardPaymentForm" class="form-grid">
                 <div><label for="cardPaymentDate">결제일</label><input id="cardPaymentDate" type="date" required /></div>
                 <div><label for="cardPaymentCard">결제 카드</label><select id="cardPaymentCard"></select></div>
@@ -948,21 +1005,77 @@
               </form>
             </div>
           </div>
-          <div class="ledger-side-panels">
-            <div class="panel card-usage-panel">
-              <h2>카드별 사용내역</h2>
-              <p class="compact-help">카드를 하나 선택하면 그 카드로 사용한 내역과 카드대금 결제 내역을 따로 확인할 수 있습니다. KB체크도 사용 즉시 계좌에서 차감되지만, 사용내역은 이곳에 따로 남습니다.</p>
-              <div class="card-usage-tools">
-                <label for="cardUsageSelect">확인할 카드 선택
-                  <select id="cardUsageSelect"></select>
-                </label>
+
+          <div class="panel ledger-manage-panel">
+            <h2>카드·은행계좌 관리</h2>
+            <p class="compact-help">카드와 은행계좌를 드롭다운에서 하나씩 선택해서 수정합니다. 삭제 버튼을 누르면 확인 팝업이 먼저 뜹니다.</p>
+            <div class="ledger-manager-row">
+              <div class="manager-box compact-manager">
+                <div class="manager-title">카드 관리</div>
+                <div class="manager-section">
+                  <label class="manager-label" for="cardManageSelect">수정할 카드 선택</label>
+                  <select id="cardManageSelect"></select>
+                </div>
+                <div class="manager-grid card-link-grid">
+                  <label>카드 이름 수정
+                    <input id="cardEditName" type="text" placeholder="예: KB가온 생활비카드" />
+                  </label>
+                  <label>카드 종류
+                    <select id="cardEditType">
+                      <option value="credit">신용카드 · 결제일에 계좌 차감</option>
+                      <option value="debit">체크카드 · 사용 즉시 계좌 차감</option>
+                    </select>
+                  </label>
+                  <label>결제/출금 계좌
+                    <select id="cardEditBank"></select>
+                  </label>
+                </div>
+                <div class="manager-actions">
+                  <button class="btn btn-small btn-secondary" type="button" id="saveSelectedCardBtn">카드 정보 저장</button>
+                  <button class="btn btn-small btn-danger" type="button" id="deleteSelectedCardBtn">선택 카드 삭제</button>
+                </div>
+                <p class="manager-current" id="cardSelectedInfo">카드를 선택하면 이름, 카드 종류, 결제/출금 계좌를 수정할 수 있습니다.</p>
+                <details class="compact-add-box">
+                  <summary>새 카드 추가 열기</summary>
+                  <div class="inline-tools compact-add-tools">
+                    <input id="newCardName" type="text" placeholder="예: KB가온, KB쿠팡, 삼성카드" />
+                    <button class="btn btn-small btn-primary" type="button" id="addCardBtn">카드 추가</button>
+                  </div>
+                </details>
               </div>
-              <div id="cardUsageSummary" class="card-usage-summary"></div>
-              <div id="cardUsageList" class="list"></div>
+
+              <div class="manager-box compact-manager">
+                <div class="manager-title">은행계좌 관리</div>
+                <div class="manager-section">
+                  <label class="manager-label" for="bankManageSelect">수정할 은행계좌 선택</label>
+                  <select id="bankManageSelect"></select>
+                </div>
+                <div class="manager-grid">
+                  <label>은행계좌 이름 수정
+                    <input id="bankEditName" type="text" placeholder="예: 국민은행 생활비" />
+                  </label>
+                  <label>현재 잔액 수정(원)
+                    <input id="bankEditBalance" type="number" step="1" placeholder="예: 1000000" />
+                  </label>
+                </div>
+                <div class="manager-actions">
+                  <button class="btn btn-small btn-primary" type="button" id="saveSelectedBankBtn">계좌 정보 저장</button>
+                  <button class="btn btn-small btn-danger" type="button" id="deleteSelectedBankBtn">선택 계좌 삭제</button>
+                </div>
+                <p class="manager-current" id="bankSelectedInfo">계좌를 선택하면 이름과 잔액을 수정할 수 있습니다.</p>
+                <details class="compact-add-box">
+                  <summary>새 은행계좌 추가 열기</summary>
+                  <div class="inline-tools bank-add-tools compact-add-tools">
+                    <input id="newBankName" type="text" placeholder="예: 국민은행 생활비, 카카오뱅크" />
+                    <input id="newBankBalance" type="number" step="1" placeholder="현재 잔액(원)" />
+                    <button class="btn btn-small btn-primary" type="button" id="addBankBtn">계좌 추가</button>
+                  </div>
+                </details>
+              </div>
             </div>
           </div>
         </div>
-        <div class="panel ledger-list-panel"><h2>가계부 사용내역</h2><p class="compact-help">날짜, 구분, 수단, 카드/통장, 분류, 금액, 내용을 가로형 목록으로 정리했습니다. 넓은 화면에서는 가로형 표처럼 보이고, 모바일에서는 항목별로 접히듯 정리됩니다.</p><div id="ledgerList" class="ledger-history-list"></div></div>
+        <div class="panel ledger-list-panel"><h2>가계부 사용내역</h2><p class="compact-help">날짜, 구분, 수단, 카드/통장, 분류, 금액, 내용을 가로형 표 형태로 정리했습니다. PC에서는 한 줄씩 보기 좋게 보이고, 모바일에서는 항목별로 자동 정리됩니다.</p><div id="ledgerList" class="ledger-history-list"></div></div>
       </section>
     </section>
 
@@ -1100,7 +1213,7 @@ service cloud.firestore {
   </main>
 
   <footer>
-    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-05-16 00:06:17 KST
+    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-05-17 01:02:23 KST
   </footer>
 
   <script type="module">
@@ -1778,8 +1891,9 @@ service cloud.firestore {
       });
       $("#cancelMemoEditBtn")?.addEventListener("click", resetMemoForm);
 
-      $("#ledgerType")?.addEventListener("change", updateLedgerCategoryOptions);
-      $("#ledgerMethod")?.addEventListener("change", updateLedgerMethodState);
+      $("#ledgerType")?.addEventListener("change", () => { updateLedgerCategoryOptions(); updateLedgerCardEffectInfo(); });
+      $("#ledgerMethod")?.addEventListener("change", () => { updateLedgerMethodState(); updateLedgerCardEffectInfo(); });
+      $("#ledgerCard")?.addEventListener("change", updateLedgerCardEffectInfo);
       $("#addCardBtn")?.addEventListener("click", addCardFromInput);
       $("#addBankBtn")?.addEventListener("click", addBankFromInput);
       $("#cardManageSelect")?.addEventListener("change", syncSelectedCardManager);
@@ -1799,6 +1913,14 @@ service cloud.firestore {
         const editId = editState.ledger;
         const previous = editId ? state.ledger.find((item) => item.id === editId) : null;
         const method = $("#ledgerMethod").value;
+        if (method === "card") {
+          const selectedCard = $("#ledgerCard")?.value || "";
+          const selectedSetting = getCardSetting(selectedCard);
+          if (selectedSetting.type === "debit" && !String(selectedSetting.bankAccount || "").trim()) {
+            alert("체크카드는 연결계좌가 있어야 사용 즉시 계좌 차감이 됩니다. 카드 관리에서 출금 계좌를 먼저 선택해 주세요.");
+            return;
+          }
+        }
         let payload = {
           id: editId || uid(),
           date: $("#ledgerDate").value,
@@ -2209,6 +2331,7 @@ service cloud.firestore {
       syncSelectedCardManager();
       syncSelectedBankManager();
       syncCardPaymentBank();
+      updateLedgerCardEffectInfo();
     }
 
     function updateLedgerMethodState() {
@@ -2217,6 +2340,29 @@ service cloud.firestore {
       const bank = $("#ledgerBank");
       if (card) card.disabled = method !== "card";
       if (bank) bank.disabled = method !== "bank";
+    }
+
+    function updateLedgerCardEffectInfo() {
+      const info = $("#ledgerCardEffectInfo");
+      if (!info) return;
+      const method = $("#ledgerMethod")?.value || "cash";
+      if (method !== "card") {
+        info.textContent = method === "bank"
+          ? "은행계좌 수단은 선택한 계좌에서 수입은 입금, 지출은 출금으로 바로 반영됩니다."
+          : "현금 수단은 카드/통장 잔액을 변경하지 않고 사용내역만 기록합니다.";
+        return;
+      }
+      const cardName = $("#ledgerCard")?.value || "";
+      const setting = getCardSetting(cardName);
+      if (!cardName) {
+        info.textContent = "카드를 선택하면 신용카드/체크카드 처리 방식이 표시됩니다.";
+        return;
+      }
+      if (setting.type === "debit") {
+        info.innerHTML = `<strong>${escapeHtml(cardName)}</strong>은 체크카드입니다. 저장 즉시 <strong>${escapeHtml(setting.bankAccount || "연결계좌 없음")}</strong> 잔액에서 차감되고, 카드별 사용금액에도 따로 남습니다.`;
+        return;
+      }
+      info.innerHTML = `<strong>${escapeHtml(cardName)}</strong>은 신용카드입니다. 사용금액만 먼저 기록되고, 카드대금 결제 저장 시 <strong>${escapeHtml(setting.bankAccount || "연결계좌 없음")}</strong>에서 차감됩니다.`;
     }
 
 function renderAll() {
@@ -3280,7 +3426,7 @@ function initLotto() {
       window.addEventListener("orientationchange", function () { setTimeout(resizeLottoFrame, 500); });
     })();
   </script>
-<!-- ver56 개인블로그_가계부정리 · 최종 생성일자: 2026-05-16 00:06:17 KST -->
-  <!-- 최종 생성일자: 2026-05-16 00:06:17 KST -->
+<!-- ver57 개인블로그_가계부가로정리 · 최종 생성일자: 2026-05-17 01:02:23 KST
+  <!-- 최종 생성일자: 2026-05-17 01:02:23 KST -->
 </body>
 </html>
