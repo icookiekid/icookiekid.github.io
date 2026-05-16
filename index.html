@@ -929,7 +929,7 @@
     }
 
 
-    /* ver61: 가계부 사용내역 카드 압축 정리 + 수정/삭제 버튼 상단 배치 */
+    /* ver62: 가계부 사용내역 카드 압축 정리 + 수정/삭제 버튼 상단 배치 */
     @media (min-width: 1024px) {
       #page-ledger .wrap {
         width: min(1960px, calc(100vw - 28px));
@@ -1283,8 +1283,378 @@
       }
     }
 
+
+
+    /* ver62: 가계부 페이지 전체 빈공간 압축 + 넓은 가로 배치 정리 */
+    @media (min-width: 1024px) {
+      #page-ledger .wrap {
+        width: min(2200px, calc(100vw - 18px));
+        max-width: none;
+      }
+      #page-ledger .page-hero {
+        padding: 18px 0 8px;
+      }
+      #page-ledger .badge {
+        margin-bottom: 8px;
+        padding: 5px 11px;
+        font-size: 12px;
+      }
+      #page-ledger .page-title {
+        font-size: clamp(32px, 2.6vw, 46px);
+        line-height: 1.02;
+        margin-bottom: 8px;
+      }
+      #page-ledger .page-desc {
+        font-size: 13px;
+        line-height: 1.35;
+        margin-bottom: 0;
+      }
+      #page-ledger .summary-cards {
+        grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+        gap: 7px;
+        margin: 0 0 8px;
+      }
+      #page-ledger .summary-card {
+        padding: 8px 10px;
+        min-height: 50px;
+        border-radius: 13px;
+        font-size: 11.5px;
+        line-height: 1.2;
+      }
+      #page-ledger .summary-card b {
+        font-size: 15px;
+        margin-top: 2px;
+      }
+      #page-ledger .panel {
+        border-radius: 18px;
+      }
+      #page-ledger input,
+      #page-ledger select,
+      #page-ledger textarea {
+        min-height: 34px;
+        padding: 7px 9px;
+        border-radius: 12px;
+        font-size: 12px;
+      }
+      #page-ledger label,
+      #page-ledger .manager-label {
+        font-size: 11.5px;
+        gap: 4px;
+      }
+      #page-ledger .btn {
+        min-height: 32px;
+        padding: 7px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+      }
+      #page-ledger .btn-small {
+        min-height: 29px;
+        padding: 6px 9px;
+        font-size: 11.5px;
+      }
+    }
+
+    #page-ledger .ledger-clean-dashboard {
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 18px;
+    }
+    #page-ledger .ledger-clean-head {
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+    #page-ledger .ledger-clean-head h2 {
+      font-size: 19px;
+      line-height: 1.08;
+      letter-spacing: -0.045em;
+    }
+    #page-ledger .ledger-clean-head p {
+      font-size: 11.5px;
+      line-height: 1.28;
+      margin-top: 2px;
+    }
+    #page-ledger .ledger-dashboard-grid {
+      gap: 8px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: stretch;
+    }
+    #page-ledger .ledger-mini-card {
+      height: clamp(260px, 22vw, 330px);
+      padding: 10px;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    #page-ledger .ledger-mini-card h3 {
+      font-size: 16px;
+      margin: 0;
+      line-height: 1.12;
+    }
+    #page-ledger .ledger-mini-card .compact-help {
+      font-size: 11px;
+      line-height: 1.25;
+      margin: 0;
+    }
+    #page-ledger .ledger-mini-card .ledger-detail-tools,
+    #page-ledger .ledger-mini-card .card-usage-tools {
+      margin: 0;
+      gap: 4px;
+    }
+    #page-ledger .ledger-mini-card .card-usage-summary {
+      grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+      gap: 5px;
+      margin: 0;
+    }
+    #page-ledger .ledger-mini-card .card-usage-summary .summary-card {
+      padding: 5px 7px;
+      min-height: 42px;
+      border-radius: 11px;
+      font-size: 10.5px;
+      line-height: 1.16;
+    }
+    #page-ledger .ledger-mini-card .card-usage-summary .summary-card b {
+      font-size: 12.5px;
+      line-height: 1.12;
+      margin-top: 1px;
+    }
+    #page-ledger .ledger-mini-card .compact-list {
+      margin-top: 0;
+      gap: 5px;
+      overflow: auto;
+      min-height: 0;
+      padding-right: 4px;
+    }
+    #page-ledger .ledger-mini-card .compact-list .list-item,
+    #page-ledger .ledger-mini-card .compact-list .empty {
+      padding: 6px 7px;
+      border-radius: 11px;
+      font-size: 11px;
+      line-height: 1.22;
+    }
+    #page-ledger .ledger-mini-card .compact-list .list-item .meta {
+      font-size: 10px;
+      line-height: 1.15;
+    }
+    #page-ledger .ledger-mini-card .compact-list .list-item h3 {
+      font-size: 12px;
+      line-height: 1.15;
+      margin: 1px 0;
+    }
+    #page-ledger .ledger-mini-card .compact-list .list-item p {
+      font-size: 11px;
+      line-height: 1.2;
+    }
+    #page-ledger .ledger-mini-card .bank-balance-list {
+      grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+      gap: 5px;
+      overflow: auto;
+      min-height: 0;
+    }
+    #page-ledger .ledger-mini-card .bank-balance-row {
+      min-height: 28px;
+      padding: 5px 7px;
+      border-radius: 10px;
+      gap: 5px;
+    }
+    #page-ledger .ledger-mini-card .bank-balance-row strong,
+    #page-ledger .ledger-mini-card .bank-balance-row span {
+      font-size: 11px;
+      line-height: 1.1;
+    }
+
+    #page-ledger .ledger-workspace-grid {
+      grid-template-columns: minmax(420px, .95fr) minmax(420px, 1.05fr);
+      gap: 8px;
+      align-items: start;
+    }
+    #page-ledger .ledger-input-panel,
+    #page-ledger .ledger-manage-panel,
+    #page-ledger .ledger-list-panel {
+      padding: 12px;
+    }
+    #page-ledger .ledger-input-panel h2,
+    #page-ledger .ledger-manage-panel h2,
+    #page-ledger .ledger-list-panel h2 {
+      font-size: 20px;
+      margin: 0 0 5px;
+      line-height: 1.15;
+    }
+    #page-ledger .compact-help {
+      font-size: 11.5px;
+      line-height: 1.28;
+      margin-bottom: 6px;
+    }
+    #page-ledger .ledger-entry-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 7px;
+    }
+    #page-ledger .ledger-card-effect-info,
+    #page-ledger .category-code-help {
+      margin: 3px 0 0;
+      padding: 6px 8px;
+      border-radius: 11px;
+      font-size: 11px;
+      line-height: 1.25;
+    }
+    #page-ledger .actions {
+      gap: 6px;
+      margin-top: 2px;
+    }
+    #page-ledger .card-payment-box {
+      margin-top: 8px;
+    }
+    #page-ledger .card-payment-box .form-grid {
+      gap: 7px;
+    }
+    #page-ledger .ledger-manager-row {
+      gap: 8px;
+    }
+    #page-ledger .manager-box {
+      padding: 10px;
+      border-radius: 16px;
+    }
+    #page-ledger .manager-title {
+      font-size: 15px;
+      margin-bottom: 6px;
+      line-height: 1.15;
+    }
+    #page-ledger .manager-section,
+    #page-ledger .manager-grid,
+    #page-ledger .manager-actions {
+      gap: 6px;
+      margin-top: 6px;
+    }
+    #page-ledger .manager-current {
+      margin-top: 6px;
+      padding: 6px 8px;
+      font-size: 11px;
+      line-height: 1.25;
+      border-radius: 10px;
+    }
+    #page-ledger .compact-add-box {
+      margin-top: 6px;
+      font-size: 11.5px;
+    }
+    #page-ledger .compact-add-tools {
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    #page-ledger .ledger-list-panel {
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    #page-ledger .ledger-list-panel .compact-help {
+      margin: 0 0 6px;
+      font-size: 11.5px;
+    }
+    #page-ledger .ledger-list-panel .ledger-history-list {
+      grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+      gap: 6px;
+      max-height: 560px;
+      overflow: auto;
+      padding: 2px 5px 6px 0;
+    }
+    #page-ledger .ledger-list-panel .ledger-row {
+      grid-template-columns: minmax(58px, .72fr) minmax(38px, .44fr) minmax(76px, .9fr) 54px;
+      gap: 3px 5px;
+      padding: 7px;
+      border-radius: 12px;
+      min-height: 76px;
+      max-height: 92px;
+      overflow: hidden;
+    }
+    #page-ledger .ledger-list-panel .ledger-row > div {
+      font-size: 10.5px;
+      line-height: 1.12;
+      gap: 3px;
+    }
+    #page-ledger .ledger-list-panel .ledger-row .cell-label {
+      font-size: 9px;
+    }
+    #page-ledger .ledger-list-panel .ledger-row .ledger-date {
+      font-size: 10.5px;
+    }
+    #page-ledger .ledger-list-panel .ledger-row .ledger-kind {
+      min-height: 17px;
+      padding: 0 5px;
+      font-size: 9.5px;
+    }
+    #page-ledger .ledger-list-panel .ledger-row .ledger-amount {
+      font-size: 11.4px;
+      white-space: nowrap;
+    }
+    #page-ledger .ledger-list-panel .ledger-row .ledger-desc {
+      min-height: 14px;
+      padding-top: 0;
+      font-size: 10.5px;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #page-ledger .ledger-list-panel .ledger-row .row-actions {
+      gap: 3px;
+      align-self: start;
+      justify-self: end;
+    }
+    #page-ledger .ledger-list-panel .ledger-row .row-actions .btn {
+      min-height: 23px;
+      padding: 4px 5px;
+      border-radius: 8px;
+      font-size: 10px;
+      line-height: 1;
+    }
+    @media (min-width: 1800px) {
+      #page-ledger .ledger-list-panel .ledger-history-list {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      #page-ledger .ledger-mini-card { height: 300px; }
+    }
+    @media (max-width: 1280px) {
+      #page-ledger .ledger-workspace-grid,
+      #page-ledger .ledger-dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      #page-ledger .ledger-mini-card {
+        height: auto;
+        max-height: none;
+      }
+      #page-ledger .ledger-mini-card .compact-list { max-height: 260px; }
+    }
+    @media (max-width: 720px) {
+      #page-ledger .page-hero { padding: 20px 0 10px; }
+      #page-ledger .summary-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #page-ledger .ledger-entry-grid,
+      #page-ledger .ledger-manager-row,
+      #page-ledger .card-payment-box .form-grid {
+        grid-template-columns: 1fr;
+      }
+      #page-ledger .ledger-entry-grid .wide-2,
+      #page-ledger .ledger-entry-grid .wide-4 {
+        grid-column: 1 / -1;
+      }
+      #page-ledger .ledger-list-panel .ledger-history-list {
+        grid-template-columns: 1fr;
+        max-height: 640px;
+      }
+      #page-ledger .ledger-list-panel .ledger-row {
+        max-height: none;
+        grid-template-columns: 1fr;
+        grid-template-areas: none;
+      }
+      #page-ledger .ledger-list-panel .ledger-row > div,
+      #page-ledger .ledger-list-panel .ledger-row .ledger-date,
+      #page-ledger .ledger-list-panel .ledger-row .ledger-amount,
+      #page-ledger .ledger-list-panel .ledger-row .ledger-desc,
+      #page-ledger .ledger-list-panel .ledger-row .row-actions {
+        grid-area: auto;
+      }
+    }
+
   </style>
-  <!-- ver61 개인블로그_사용내역압축정리 · 최종 생성일자: 2026-05-17 02:03:02 KST -->
+  <!-- ver62 개인블로그_가계부공간압축 · 최종 생성일자: 2026-05-17 02:12:12 KST -->
 </head>
 <body>
   <header>
@@ -1597,7 +1967,7 @@
 
       <section class="wrap">
         <div class="lotto-frame-wrap">
-          <iframe id="lottoFrame" class="lotto-frame" title="로또 당첨 확인 웹페이지" src="./lotto.html?v=61" loading="lazy" scrolling="no" allow="camera"></iframe>
+          <iframe id="lottoFrame" class="lotto-frame" title="로또 당첨 확인 웹페이지" src="./lotto.html?v=62" loading="lazy" scrolling="no" allow="camera"></iframe>
         </div>
       </section>
     </section>
@@ -1673,7 +2043,7 @@ service cloud.firestore {
   </main>
 
   <footer>
-    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-05-17 02:03:02 KST
+    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-05-17 02:12:12 KST
   </footer>
 
   <script type="module">
@@ -3800,7 +4170,7 @@ function initLotto() {
   </script>
 <script id="lotto-section-loader">
     (function () {
-      var LOTTO_FRAME_SRC = "./lotto.html?v=61";
+      var LOTTO_FRAME_SRC = "./lotto.html?v=62";
 
       function getSafePostMessageOrigin() {
         return window.location.origin && window.location.origin !== "null" ? window.location.origin : "*";
@@ -3852,7 +4222,7 @@ function initLotto() {
         if (forceReload || !frame.getAttribute("src")) {
           frame.removeAttribute("srcdoc");
           frame.dataset.resizeBound = "";
-          frame.src = forceReload ? "./lotto.html?v=61&reload=" + Date.now() : LOTTO_FRAME_SRC;
+          frame.src = forceReload ? "./lotto.html?v=62&reload=" + Date.now() : LOTTO_FRAME_SRC;
         }
         frame.onload = function () {
           resizeLottoFrame();
@@ -3886,7 +4256,7 @@ function initLotto() {
       window.addEventListener("orientationchange", function () { setTimeout(resizeLottoFrame, 500); });
     })();
   </script>
-<!-- ver61 개인블로그_사용내역압축정리 · 최종 생성일자: 2026-05-17 02:03:02 KST -->
-<!-- 최종 생성일자: 2026-05-17 02:03:02 KST -->
+<!-- ver62 개인블로그_가계부공간압축 · 최종 생성일자: 2026-05-17 02:12:12 KST -->
+<!-- 최종 생성일자: 2026-05-17 02:12:12 KST -->
 </body>
 </html>
