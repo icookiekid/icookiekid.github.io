@@ -1115,4 +1115,4 @@ ensureBulkRows(3);
 refreshUI();
 setTimeout(notifyParentLottoSync, 80);
 
-// ver59 개인블로그 가계부높이정렬 · 최종 생성일자: 2026-05-17 01:34:39 KST
+// ver61 개인블로그_사용내역압축정리 · 최종 생성일자: 2026-05-17 02:03:02 KST
