@@ -1865,7 +1865,7 @@
 
 
   </style>
-  <!-- ver64 개인블로그_사용내역읽기정리 · 최종 생성일자: 2026-05-17 02:26:14 KST -->
+  <!-- ver66 개인블로그_카드종류저장수정 · 최종 생성일자: 2026-05-19 09:00:42 KST
 </head>
 <body>
   <header>
@@ -2178,7 +2178,7 @@
 
       <section class="wrap">
         <div class="lotto-frame-wrap">
-          <iframe id="lottoFrame" class="lotto-frame" title="로또 당첨 확인 웹페이지" src="./lotto.html?v=64" loading="lazy" scrolling="no" allow="camera"></iframe>
+          <iframe id="lottoFrame" class="lotto-frame" title="로또 당첨 확인 웹페이지" src="./lotto.html?v=65" loading="lazy" scrolling="no" allow="camera"></iframe>
         </div>
       </section>
     </section>
@@ -2254,7 +2254,7 @@ service cloud.firestore {
   </main>
 
   <footer>
-    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-05-17 02:12:12 KST
+    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-05-19 09:00:42 KST
   </footer>
 
   <script type="module">
@@ -2644,6 +2644,18 @@ service cloud.firestore {
       return String(value || "").replace(/\s+/g, "").toLowerCase();
     }
 
+    function isLikelyCheckCardName(cardName) {
+      const key = normalizeCardName(cardName);
+      return key.includes("체크") || key.includes("check");
+    }
+
+    function inferDefaultBankForCheckCard(cardName) {
+      const key = normalizeCardName(cardName);
+      if (key.includes("nh") || key.includes("농협")) return "농협은행";
+      if (key.includes("kb") || key.includes("국민")) return "kb8424";
+      return "";
+    }
+
     function normalizeCardType(value) {
       return value === "debit" ? "debit" : "credit";
     }
@@ -2651,16 +2663,25 @@ service cloud.firestore {
     function getDefaultCardSetting(cardName) {
       const key = normalizeCardName(cardName);
       const exact = Object.keys(defaultCardSettings).find((name) => normalizeCardName(name) === key);
-      return exact ? { ...defaultCardSettings[exact] } : { type: "credit", bankAccount: "" };
+      if (exact) return { ...defaultCardSettings[exact] };
+      if (isLikelyCheckCardName(cardName)) {
+        return { type: "debit", bankAccount: inferDefaultBankForCheckCard(cardName) };
+      }
+      return { type: "credit", bankAccount: "" };
     }
 
     function sanitizeCardSetting(setting, cardName) {
       const fallback = getDefaultCardSetting(cardName);
       const source = setting && typeof setting === "object" ? setting : {};
+      const hasExplicitType = Object.prototype.hasOwnProperty.call(source, "type") || Object.prototype.hasOwnProperty.call(source, "kind");
       const hasExplicitBank = Object.prototype.hasOwnProperty.call(source, "bankAccount") || Object.prototype.hasOwnProperty.call(source, "bank");
-      const bankValue = hasExplicitBank ? (source.bankAccount ?? source.bank ?? "") : fallback.bankAccount;
+      const typeValue = hasExplicitType
+        ? normalizeCardType(source.type || source.kind)
+        : normalizeCardType(fallback.type);
+      let bankValue = hasExplicitBank ? (source.bankAccount ?? source.bank ?? "") : fallback.bankAccount;
+      if (!String(bankValue || "").trim() && typeValue === "debit") bankValue = fallback.bankAccount;
       return {
-        type: normalizeCardType(source.type || source.kind || fallback.type),
+        type: typeValue,
         bankAccount: String(bankValue || "").trim()
       };
     }
@@ -2732,6 +2753,8 @@ service cloud.firestore {
         if (setting.type === "debit") {
           item.bankAccount = setting.bankAccount || item.bankAccount || "";
           item.debitBankDeducted = true;
+        } else {
+          item.debitBankDeducted = false;
         }
       }
       if (method === "bank") item.linkedBankAccount = item.bankAccount || "";
@@ -2755,9 +2778,11 @@ service cloud.firestore {
         if (item.type === "expense") return [{ bank, delta: -amount }];
       }
       if (method === "card" && item.card) {
-        const setting = getCardSetting(item.card);
-        const bank = String(setting.bankAccount || item.linkedBankAccount || item.bankAccount || "").trim();
-        if (setting.type !== "debit" || !bank) return [];
+        const savedCardType = normalizeCardType(item.cardType || "");
+        const currentSetting = getCardSetting(item.card);
+        const cardType = item.cardType ? savedCardType : currentSetting.type;
+        const bank = String(item.linkedBankAccount || item.bankAccount || currentSetting.bankAccount || "").trim();
+        if (cardType !== "debit" || !bank) return [];
         if (item.type === "income") return [{ bank, delta: amount }];
         if (item.type === "expense") return [{ bank, delta: -amount }];
       }
@@ -2938,7 +2963,8 @@ service cloud.firestore {
       $("#addCardBtn")?.addEventListener("click", addCardFromInput);
       $("#addBankBtn")?.addEventListener("click", addBankFromInput);
       $("#cardManageSelect")?.addEventListener("change", syncSelectedCardManager);
-      $("#cardEditType")?.addEventListener("change", syncSelectedCardManager);
+      $("#cardEditType")?.addEventListener("change", updateCardManagerPreview);
+      $("#cardEditBank")?.addEventListener("change", updateCardManagerPreview);
       $("#bankManageSelect")?.addEventListener("change", syncSelectedBankManager);
       $("#cardPaymentCard")?.addEventListener("change", syncCardPaymentBank);
       $("#cardUsageSelect")?.addEventListener("change", renderCardUsageDetails);
@@ -3097,7 +3123,7 @@ service cloud.firestore {
       state.deletedCards = normalizeDeletedCards(state.deletedCards).filter((card) => card !== name);
       state.cards.push(name);
       ensureCardSettings();
-      state.cardSettings[name] = getDefaultCardSetting(name);
+      state.cardSettings[name] = sanitizeCardSetting(getDefaultCardSetting(name), name);
       if (state.cardSettings[name].bankAccount) ensureLinkedBankAccount(state.cardSettings[name].bankAccount);
       input.value = "";
       saveLocalData();
@@ -3221,6 +3247,28 @@ service cloud.firestore {
       }
     }
 
+    function updateCardManagerPreview() {
+      const select = $("#cardManageSelect");
+      const input = $("#cardEditName");
+      const typeSelect = $("#cardEditType");
+      const bankSelect = $("#cardEditBank");
+      const info = $("#cardSelectedInfo");
+      const selectedName = String(input?.value || select?.value || "").trim();
+      const selectedType = normalizeCardType(typeSelect?.value || "credit");
+      const selectedBank = String(bankSelect?.value || "").trim();
+      if (!selectedName) {
+        if (info) info.textContent = "등록된 카드가 없습니다. 새 카드를 추가해 주세요.";
+        return;
+      }
+      if (info) {
+        const typeText = selectedType === "debit" ? "체크카드" : "신용카드";
+        const actionText = selectedType === "debit"
+          ? `저장 후 이 카드는 사용 즉시 ${selectedBank || "연결계좌 없음"} 잔액에서 차감됩니다.`
+          : `저장 후 이 카드는 카드대금 결제 시 ${selectedBank || "연결계좌 없음"}에서 차감됩니다.`;
+        info.textContent = `${selectedName} · ${typeText} · ${actionText}`;
+      }
+    }
+
     function syncCardPaymentBank() {
       ensureCardSettings();
       const cardSelect = $("#cardPaymentCard");
@@ -3241,10 +3289,16 @@ service cloud.firestore {
       if (!oldName) return alert("수정할 카드를 먼저 선택해 주세요.");
       if (!newName) return alert("카드 이름을 입력해 주세요.");
       if (newName !== oldName && (state.cards || []).includes(newName)) return alert("이미 같은 이름의 카드가 있습니다.");
-      const setting = {
-        type: normalizeCardType(typeSelect?.value || "credit"),
-        bankAccount: String(bankSelect?.value || "").trim()
-      };
+      const selectedTypeForCard = normalizeCardType(typeSelect?.value || "credit");
+      const selectedBankForCard = String(bankSelect?.value || "").trim();
+      if (selectedTypeForCard === "debit" && !selectedBankForCard) {
+        alert("체크카드는 사용 즉시 차감할 출금 계좌가 반드시 필요합니다. 결제/출금 계좌를 먼저 선택해 주세요.");
+        return;
+      }
+      const setting = sanitizeCardSetting({
+        type: selectedTypeForCard,
+        bankAccount: selectedBankForCard
+      }, newName);
       state.deletedCards = normalizeDeletedCards(state.deletedCards).filter((card) => card !== newName);
       if (setting.bankAccount) ensureLinkedBankAccount(setting.bankAccount);
       state.cards = (state.cards || []).map((card) => card === oldName ? newName : card);
@@ -3462,7 +3516,8 @@ function renderAll() {
         if (method === "card") {
           acc.card += amount;
           const setting = getCardSetting(item.card);
-          if (setting.type === "debit") acc.debitCard += amount;
+          const itemCardType = item.cardType ? normalizeCardType(item.cardType) : setting.type;
+          if (itemCardType === "debit") acc.debitCard += amount;
           else acc.creditCard += amount;
           if (normalizeCardName(item.card) === normalizeCardName("KB체크")) acc.kbCheck += amount;
         }
@@ -4381,7 +4436,7 @@ function initLotto() {
   </script>
 <script id="lotto-section-loader">
     (function () {
-      var LOTTO_FRAME_SRC = "./lotto.html?v=64";
+      var LOTTO_FRAME_SRC = "./lotto.html?v=65";
 
       function getSafePostMessageOrigin() {
         return window.location.origin && window.location.origin !== "null" ? window.location.origin : "*";
@@ -4433,7 +4488,7 @@ function initLotto() {
         if (forceReload || !frame.getAttribute("src")) {
           frame.removeAttribute("srcdoc");
           frame.dataset.resizeBound = "";
-          frame.src = forceReload ? "./lotto.html?v=64&reload=" + Date.now() : LOTTO_FRAME_SRC;
+          frame.src = forceReload ? "./lotto.html?v=65&reload=" + Date.now() : LOTTO_FRAME_SRC;
         }
         frame.onload = function () {
           resizeLottoFrame();
@@ -4511,7 +4566,7 @@ function initLotto() {
       });
     })();
   </script>
-<!-- ver64 개인블로그_사용내역읽기정리 · 최종 생성일자: 2026-05-17 02:26:14 KST -->
-<!-- 최종 생성일자: 2026-05-17 02:26:14 KST -->
+<!-- ver66 개인블로그_카드종류저장수정 · 최종 생성일자: 2026-05-19 09:00:42 KST
+<!-- 최종 생성일자: 2026-05-19 09:00:42 KST -->
 </body>
 </html>
