@@ -2333,8 +2333,65 @@
       #page-ledger .ledger-list-panel .ledger-row .row-actions .btn { padding: 3px 4px !important; font-size: 9.5px !important; }
     }
 
+  
+
+    /* ver71: 가계부 사용내역 표 우측 빈공간 제거 - 표를 패널 전체 폭으로 확장 */
+    #page-ledger .ledger-list-panel {
+      width: 100% !important;
+      max-width: none !important;
+    }
+    #page-ledger .ledger-list-panel .ledger-history-list {
+      width: 100% !important;
+      max-width: none !important;
+      overflow: auto !important;
+      background: rgba(255,253,248,.72) !important;
+    }
+    #page-ledger .ledger-list-panel .ledger-table-head,
+    #page-ledger .ledger-list-panel .ledger-row {
+      width: 100% !important;
+      min-width: 1040px !important;
+      max-width: none !important;
+      box-sizing: border-box !important;
+      grid-template-columns: 94px 54px 68px 165px 90px 112px minmax(320px, 1fr) 78px !important;
+    }
+    #page-ledger .ledger-list-panel .ledger-row > div,
+    #page-ledger .ledger-list-panel .ledger-table-head > div {
+      box-sizing: border-box !important;
+    }
+    #page-ledger .ledger-list-panel .ledger-row .ledger-desc {
+      width: 100% !important;
+      max-width: none !important;
+    }
+    #page-ledger .ledger-list-panel .ledger-row .row-actions {
+      justify-content: center !important;
+      align-items: center !important;
+    }
+    @media (min-width: 1600px) {
+      #page-ledger .ledger-list-panel .ledger-table-head,
+      #page-ledger .ledger-list-panel .ledger-row {
+        width: 100% !important;
+        min-width: 1180px !important;
+        grid-template-columns: 100px 58px 74px 185px 98px 122px minmax(420px, 1fr) 82px !important;
+      }
+    }
+    @media (min-width: 2200px) {
+      #page-ledger .ledger-list-panel .ledger-table-head,
+      #page-ledger .ledger-list-panel .ledger-row {
+        min-width: 1280px !important;
+        grid-template-columns: 108px 62px 78px 210px 106px 132px minmax(560px, 1fr) 86px !important;
+      }
+    }
+    @media (max-width: 760px) {
+      #page-ledger .ledger-list-panel .ledger-table-head,
+      #page-ledger .ledger-list-panel .ledger-row {
+        width: 100% !important;
+        min-width: 820px !important;
+        grid-template-columns: 78px 48px 58px 136px 76px 92px minmax(210px, 1fr) 70px !important;
+      }
+    }
+
   </style>
-  <!-- ver70 개인블로그_사용내역실용정리 · 최종 생성일자: 2026-05-19 10:45:18 KST -->
+  <!-- ver71 개인블로그_사용내역빈공간제거 · 최종 생성일자: 2026-05-19 10:58:43 KST -->
 </head>
 <body>
   <header>
@@ -5178,7 +5235,6 @@ function initLotto() {
       });
     })();
   </script>
-<!-- ver70 개인블로그_사용내역실용정리 · 최종 생성일자: 2026-05-19 10:45:18 KST -->
 <!-- 최종 생성일자: 2026-05-19 10:45:18 KST -->
 </body>
 </html>
