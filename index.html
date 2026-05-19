@@ -1865,7 +1865,7 @@
 
 
   </style>
-  <!-- ver67 개인블로그_빈화면재복구 · 최종 생성일자: 2026-05-19 09:12:33 KST -->
+  <!-- ver68 개인블로그_체크카드기존내역반영 · 최종 생성일자: 2026-05-19 09:23:37 KST -->
 </head>
 <body>
   <header>
@@ -2073,9 +2073,11 @@
                 </div>
                 <div class="manager-actions">
                   <button class="btn btn-small btn-secondary" type="button" id="saveSelectedCardBtn">카드 정보 저장</button>
+                  <button class="btn btn-small btn-outline" type="button" id="applyDebitHistoryBtn">체크카드 기존내역 계좌반영</button>
                   <button class="btn btn-small btn-danger" type="button" id="deleteSelectedCardBtn">선택 카드 삭제</button>
                 </div>
                 <p class="manager-current" id="cardSelectedInfo">카드를 선택하면 이름, 카드 종류, 결제/출금 계좌를 수정할 수 있습니다.</p>
+                <p class="manager-current" id="cardDebitHistoryInfo">체크카드로 저장하면 기존 사용내역 중 아직 계좌에 반영되지 않은 금액도 연결계좌에 반영됩니다.</p>
                 <details class="compact-add-box">
                   <summary>새 카드 추가 열기</summary>
                   <div class="inline-tools compact-add-tools">
@@ -2254,7 +2256,7 @@ service cloud.firestore {
   </main>
 
   <footer>
-    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-05-19 09:12:33 KST
+    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-05-19 09:23:37 KST
   </footer>
 
   <script type="module">
@@ -2804,6 +2806,140 @@ service cloud.firestore {
       });
     }
 
+    function adjustBankBalanceForReconcile(bankName, delta) {
+      const clean = String(bankName || "").trim();
+      if (!clean || !toMoneyNumber(delta)) return false;
+      ensureBankData();
+      const deletedBanks = normalizeDeletedBanks(state.deletedBanks);
+      if (deletedBanks.includes(clean)) return false;
+      if (!state.banks.includes(clean)) state.banks.push(clean);
+      if (!Object.prototype.hasOwnProperty.call(state.bankBalances, clean)) state.bankBalances[clean] = 0;
+      state.bankBalances[clean] = toMoneyNumber(state.bankBalances[clean]) + toMoneyNumber(delta);
+      return true;
+    }
+
+    function getDebitLedgerDelta(item) {
+      const amount = toMoneyNumber(item && item.amount);
+      if (!amount) return 0;
+      return item && item.type === "income" ? amount : -amount;
+    }
+
+    function isNormalCardLedgerItem(item, targetCardName = "") {
+      if (!item || item.isCardPayment) return false;
+      const method = item.method === "transfer" ? "bank" : item.method;
+      if (method !== "card" || !item.card) return false;
+      if (targetCardName && String(item.card || "").trim() !== String(targetCardName || "").trim()) return false;
+      return true;
+    }
+
+    function getAppliedDebitBank(item) {
+      return String(
+        (item && item.debitBankAppliedBankAccount) ||
+        (item && item.linkedBankAccount) ||
+        (item && item.bankAccount) ||
+        ""
+      ).trim();
+    }
+
+    function markLedgerAsDebitApplied(item, bankName) {
+      const cleanBank = String(bankName || "").trim();
+      item.cardType = "debit";
+      item.linkedBankAccount = cleanBank;
+      item.bankAccount = cleanBank;
+      item.debitBankDeducted = true;
+      item.debitBankAppliedBankAccount = cleanBank;
+      item.cardUsageRecorded = true;
+      item.bankEffectApplied = true;
+    }
+
+    function markLedgerAsDebitNotApplied(item, currentSetting) {
+      const setting = currentSetting || getCardSetting(item.card);
+      item.cardType = setting.type || "credit";
+      item.linkedBankAccount = setting.bankAccount || "";
+      if ((item.method === "card" || item.method === "transfer") && setting.type !== "debit") item.bankAccount = "";
+      item.debitBankDeducted = false;
+      delete item.debitBankAppliedBankAccount;
+      item.cardUsageRecorded = true;
+      item.bankEffectApplied = true;
+    }
+
+    function reconcileDebitCardBankEffects(options = {}) {
+      const targetCardName = String(options.cardName || "").trim();
+      ensureBankData();
+      ensureCardSettings();
+      let appliedCount = 0;
+      let movedCount = 0;
+      let reversedCount = 0;
+      let metadataCount = 0;
+
+      (state.ledger || []).forEach((item) => {
+        if (!isNormalCardLedgerItem(item, targetCardName)) return;
+        const delta = getDebitLedgerDelta(item);
+        if (!delta) return;
+        const setting = getCardSetting(item.card);
+        const targetBank = String(setting.bankAccount || "").trim();
+        const shouldBeDebit = setting.type === "debit" && Boolean(targetBank);
+        const wasApplied = item.debitBankDeducted === true;
+        const appliedBank = getAppliedDebitBank(item);
+
+        if (shouldBeDebit) {
+          if (!wasApplied) {
+            if (adjustBankBalanceForReconcile(targetBank, delta)) {
+              markLedgerAsDebitApplied(item, targetBank);
+              appliedCount += 1;
+            }
+          } else if (appliedBank && appliedBank !== targetBank) {
+            adjustBankBalanceForReconcile(appliedBank, -delta);
+            adjustBankBalanceForReconcile(targetBank, delta);
+            markLedgerAsDebitApplied(item, targetBank);
+            movedCount += 1;
+          } else {
+            const before = JSON.stringify([item.cardType, item.linkedBankAccount, item.bankAccount, item.debitBankAppliedBankAccount]);
+            markLedgerAsDebitApplied(item, targetBank);
+            const after = JSON.stringify([item.cardType, item.linkedBankAccount, item.bankAccount, item.debitBankAppliedBankAccount]);
+            if (before !== after) metadataCount += 1;
+          }
+          return;
+        }
+
+        if (wasApplied) {
+          if (appliedBank) adjustBankBalanceForReconcile(appliedBank, -delta);
+          markLedgerAsDebitNotApplied(item, setting);
+          reversedCount += 1;
+        }
+      });
+
+      const changed = appliedCount + movedCount + reversedCount + metadataCount > 0;
+      const result = { changed, appliedCount, movedCount, reversedCount, metadataCount };
+      if (changed && options.autoSave !== false) {
+        saveLocalData(options.cloudSave !== false);
+      }
+      return result;
+    }
+
+    function summarizeDebitReconcileResult(result) {
+      if (!result || !result.changed) return "반영할 기존 체크카드 내역이 없습니다.";
+      const parts = [];
+      if (result.appliedCount) parts.push(`신규 반영 ${result.appliedCount}건`);
+      if (result.movedCount) parts.push(`연결계좌 이동 ${result.movedCount}건`);
+      if (result.reversedCount) parts.push(`체크카드 해제/취소 ${result.reversedCount}건`);
+      if (result.metadataCount) parts.push(`내역 표시 정리 ${result.metadataCount}건`);
+      return parts.join(", ") || "체크카드 내역을 점검했습니다.";
+    }
+
+    function applyDebitHistoryFromButton() {
+      const selectedCard = String($("#cardManageSelect")?.value || "").trim();
+      if (!selectedCard) return alert("먼저 카드를 선택해 주세요.");
+      const setting = getCardSetting(selectedCard);
+      if (setting.type !== "debit") return alert("선택한 카드가 체크카드로 저장되어 있지 않습니다. 카드 종류를 체크카드로 선택하고 카드 정보 저장을 먼저 눌러주세요.");
+      if (!String(setting.bankAccount || "").trim()) return alert("체크카드 연결계좌가 없습니다. 결제/출금 계좌를 선택하고 카드 정보 저장을 먼저 눌러주세요.");
+      const result = reconcileDebitCardBankEffects({ cardName: selectedCard, autoSave: true, cloudSave: true });
+      const message = summarizeDebitReconcileResult(result);
+      const info = $("#cardDebitHistoryInfo");
+      if (info) info.textContent = `${selectedCard}: ${message}`;
+      alert(`${selectedCard} 기존 사용내역 계좌반영 점검 완료\n${message}`);
+    }
+
     function ensureBankData() {
       state.deletedBanks = normalizeDeletedBanks(state.deletedBanks);
       const isDeletedBank = (name) => state.deletedBanks.includes(String(name || "").trim());
@@ -2972,6 +3108,7 @@ service cloud.firestore {
       $("#ledgerDetailSelect")?.addEventListener("change", renderLedgerDetails);
       $("#bankBalanceDetailSelect")?.addEventListener("change", renderBankBalanceDetails);
       $("#saveSelectedCardBtn")?.addEventListener("click", saveSelectedCardFromDropdown);
+      $("#applyDebitHistoryBtn")?.addEventListener("click", applyDebitHistoryFromButton);
       $("#deleteSelectedCardBtn")?.addEventListener("click", deleteSelectedCardFromDropdown);
       $("#saveSelectedBankBtn")?.addEventListener("click", saveSelectedBankFromDropdown);
       $("#deleteSelectedBankBtn")?.addEventListener("click", deleteSelectedBankFromDropdown);
@@ -3310,11 +3447,14 @@ service cloud.firestore {
         if (next.cardPaidFor === oldName) next = { ...next, cardPaidFor: newName };
         return next;
       });
+      const reconcileResult = reconcileDebitCardBankEffects({ cardName: newName, autoSave: false });
       saveLocalData();
+      const historyInfo = $("#cardDebitHistoryInfo");
+      if (historyInfo) historyInfo.textContent = `${newName}: ${summarizeDebitReconcileResult(reconcileResult)}`;
       const refreshed = $("#cardManageSelect");
       if (refreshed) refreshed.value = newName;
       syncSelectedCardManager();
-      alert("카드 이름, 카드 종류, 결제/출금 계좌가 저장되었습니다.");
+      alert(`카드 이름, 카드 종류, 결제/출금 계좌가 저장되었습니다.\n기존 체크카드 내역 점검: ${summarizeDebitReconcileResult(reconcileResult)}`);
     }
 
     function deleteSelectedCardFromDropdown() {
@@ -4323,8 +4463,10 @@ function initLotto() {
           const cloud = snap.data();
           delete cloud.cloudUpdatedAt;
           state = normalizeWholeState(cloud);
+          const cloudReconcileResult = reconcileDebitCardBankEffects({ autoSave: false });
           syncStateLottoIntoLocalStorage();
           saveLocalData(false);
+          if (cloudReconcileResult.changed) scheduleCloudSave();
           applyMenuOrder();
           pushLottoDrawsToIframe();
           if (showMessage) setStatus($("#cloudStatus"), "good", "Firestore 가져오기 완료", "Firestore 데이터를 이 브라우저로 불러왔습니다. 로또 데이터도 iframe에 반영했습니다.");
@@ -4427,6 +4569,7 @@ function initLotto() {
       safeBootStep("삭제 버튼", initDeleteButtons);
       safeBootStep("로또", initLotto);
       safeBootStep("로또 삭제", initLottoDelete);
+      safeBootStep("체크카드 기존내역 계좌반영 점검", () => reconcileDebitCardBankEffects({ autoSave: true, cloudSave: false }));
       safeBootStep("화면 표시", renderAll);
       safeBootStep("가계부 수단 표시", updateLedgerMethodState);
       firebaseInitPromise = initFirebase();
@@ -4566,7 +4709,7 @@ function initLotto() {
       });
     })();
   </script>
-<!-- ver67 개인블로그_빈화면재복구 · 최종 생성일자: 2026-05-19 09:12:33 KST -->
-<!-- 최종 생성일자: 2026-05-19 09:12:33 KST -->
+<!-- ver68 개인블로그_체크카드기존내역반영 · 최종 생성일자: 2026-05-19 09:23:37 KST -->
+<!-- 최종 생성일자: 2026-05-19 09:23:37 KST -->
 </body>
 </html>
