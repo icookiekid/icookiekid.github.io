@@ -388,25 +388,39 @@ function checkBulk() {
   box.innerHTML = html;
 }
 
-function buildFrequencyRanking(includeBonus=false) {
+function buildFrequencyRanking(includeBonus=false, maxRound=null) {
   const counts = {};
   for (let n = 1; n <= 45; n++) counts[n] = 0;
+  const limitRound = Number(maxRound);
   draws.forEach(d => {
+    if (Number.isInteger(limitRound) && Number(d.round) > limitRound) return;
     d.numbers.forEach(n => { if (n >= 1 && n <= 45) counts[n]++; });
     if (includeBonus && isValidBonus(Number(d.bonus), d.numbers)) counts[d.bonus]++;
   });
   // 정렬표 생성: 출현횟수 많은 순, 동률은 번호 오름차순.
-  // 이 표는 회차를 추가/수정할 때마다 현재 저장된 전체 데이터 기준으로 다시 계산됩니다.
+  // 당첨확인용 추출은 반드시 목표 회차 이전 회차까지만 계산합니다.
+  // 예: 1227회 확인용 버튼 → 1226회까지 자료로만 계산합니다.
   const ranking = Array.from({ length: 45 }, (_, i) => i + 1)
     .sort((a, b) => counts[b] - counts[a] || a - b);
   return { ranking, counts };
+}
+
+function getDrawByRound(round) {
+  const r = Number(round);
+  return draws.find(d => Number(d.round) === r) || null;
+}
+
+function getBaseDrawForCheckTarget(targetDraw) {
+  if (!targetDraw) return null;
+  const targetRound = Number(targetDraw.round);
+  return getDrawByRound(targetRound - 1);
 }
 
 function extractByPosition(draw, includeBonus=false) {
   if (!draw || !Array.isArray(draw.numbers) || draw.numbers.length !== 6) {
     return { extracted: [], details: [], ranking: [], counts: {} };
   }
-  const { ranking, counts } = buildFrequencyRanking(includeBonus);
+  const { ranking, counts } = buildFrequencyRanking(includeBonus, Number(draw.round));
 
   // 사용자가 엑셀 기준으로 확인한 검증값을 우선 적용합니다.
   // 1222회까지 자료 → 1223회 당첨확인용
@@ -986,12 +1000,17 @@ document.getElementById('sortBtn').addEventListener('click', () => {
 document.getElementById('clearBtn').addEventListener('click', () => writeTicketInputs([]));
 document.querySelectorAll('[data-preset]').forEach(btn => btn.addEventListener('click', () => writeTicketInputs(btn.dataset.preset.split(',').map(Number))));
 function applyQuickExtract(includeBonus=false) {
-  const draw = getSelectedDraw();
-  if (!draw) {
-    alert('먼저 기준 회차를 선택해 주세요.');
+  const targetDraw = getSelectedDraw();
+  if (!targetDraw) {
+    alert('먼저 당첨 확인할 회차를 선택해 주세요.');
     return;
   }
-  const result = extractByPosition(draw, includeBonus);
+  const baseDraw = getBaseDrawForCheckTarget(targetDraw);
+  if (!baseDraw) {
+    alert(`${targetDraw.round}회 당첨확인용 추출을 계산하려면 ${Number(targetDraw.round) - 1}회 데이터가 먼저 저장되어 있어야 합니다.`);
+    return;
+  }
+  const result = extractByPosition(baseDraw, includeBonus);
   if (!result.extracted || result.extracted.length !== 6) {
     alert('추출번호를 계산하지 못했습니다. 회차 데이터가 있는지 확인해 주세요.');
     return;
@@ -999,7 +1018,7 @@ function applyQuickExtract(includeBonus=false) {
   writeTicketInputs(result.extracted);
   const inputs = [...document.querySelectorAll('#ticketInputs input')];
   const ok = inputs.slice(0, 6).every((input, i) => String(input.value) === String(result.extracted[i]));
-  document.getElementById('singleResult').innerHTML = `<div class="rank">${includeBonus ? '포함추출' : '제외추출'} 번호 입력 완료</div><div class="muted">${draw.round}회까지 자료 기준 · ${Number(draw.round) + 1}회 당첨확인용 번호가 ① 당첨확인 칸에 입력되었습니다.<br>입력번호: ${result.extracted.join(', ')}${ok ? '' : '<br><b style="color:var(--bad)">입력칸 반영을 다시 확인해 주세요.</b>'}</div>`;
+  document.getElementById('singleResult').innerHTML = `<div class="rank">당첨확인용 ${includeBonus ? '포함추출' : '제외추출'} 번호 입력 완료</div><div class="muted">${targetDraw.round}회 당첨확인은 ${baseDraw.round}회까지 자료 기준으로 계산했습니다.<br>즉, ${targetDraw.round}회 번호는 추출 계산에 포함하지 않았습니다.<br>입력번호: ${result.extracted.join(', ')}${ok ? '' : '<br><b style="color:var(--bad)">입력칸 반영을 다시 확인해 주세요.</b>'}</div>`;
   const firstInput = document.querySelector('#ticketInputs input');
   if (firstInput) firstInput.focus();
 }
@@ -1115,4 +1134,4 @@ ensureBulkRows(3);
 refreshUI();
 setTimeout(notifyParentLottoSync, 80);
 
-// ver62 개인블로그_사용내역압축정리 · 최종 생성일자: 2026-05-17 02:12:12 KST
+// ver73 개인블로그_로또당첨확인기준수정 · 최종 생성일자: 2026-06-07 15:37:55 KST

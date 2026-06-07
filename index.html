@@ -2591,7 +2591,7 @@
     }
 
   </style>
-  <!-- ver72 개인블로그_사용내역2열정리 · 최종 생성일자: 2026-05-19 11:10:47 KST -->
+  <!-- ver73 개인블로그_로또당첨확인기준수정 · 최종 생성일자: 2026-06-07 15:37:55 KST -->
 </head>
 <body>
   <header>
@@ -2906,7 +2906,7 @@
 
       <section class="wrap">
         <div class="lotto-frame-wrap">
-          <iframe id="lottoFrame" class="lotto-frame" title="로또 당첨 확인 웹페이지" src="./lotto.html?v=65" loading="lazy" scrolling="no" allow="camera"></iframe>
+          <iframe id="lottoFrame" class="lotto-frame" title="로또 당첨 확인 웹페이지" src="./lotto.html?v=73" loading="lazy" scrolling="no" allow="camera"></iframe>
         </div>
       </section>
     </section>
@@ -2982,7 +2982,7 @@ service cloud.firestore {
   </main>
 
   <footer>
-    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-05-19 11:10:47 KST
+    나의 개인 공간 · GitHub Pages + Firebase 통합형 · 최종 생성일자: 2026-06-07 15:37:55 KST
   </footer>
 
   <script type="module">
@@ -5305,7 +5305,7 @@ function initLotto() {
   </script>
 <script id="lotto-section-loader">
     (function () {
-      var LOTTO_FRAME_SRC = "./lotto.html?v=69";
+      var LOTTO_FRAME_SRC = "./lotto.html?v=73";
 
       function getSafePostMessageOrigin() {
         return window.location.origin && window.location.origin !== "null" ? window.location.origin : "*";
@@ -5357,7 +5357,7 @@ function initLotto() {
         if (forceReload || !frame.getAttribute("src")) {
           frame.removeAttribute("srcdoc");
           frame.dataset.resizeBound = "";
-          frame.src = forceReload ? "./lotto.html?v=69&reload=" + Date.now() : LOTTO_FRAME_SRC;
+          frame.src = forceReload ? "./lotto.html?v=73&reload=" + Date.now() : LOTTO_FRAME_SRC;
         }
         frame.onload = function () {
           resizeLottoFrame();
@@ -5435,6 +5435,6 @@ function initLotto() {
       });
     })();
   </script>
-<!-- 최종 생성일자: 2026-05-19 11:10:47 KST -->
+<!-- 최종 생성일자: 2026-06-07 15:37:55 KST -->
 </body>
 </html>
